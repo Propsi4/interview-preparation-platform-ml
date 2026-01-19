@@ -31,8 +31,9 @@ class DouScraper(ScraperBase):
 
     async def _open_vacancies_page(self, query: str) -> Page:
         """Open the vacancies page for a query."""
-        page = await self.browser.new_page()
-        await page.goto(f"{self._base_url}?search=={query}")
+        browser = await self.get_browser()
+        page = await browser.new_page()
+        await page.goto(f"{self._base_url}?search={query}")
         return page
 
     async def _extract_total_results(self, page: Page) -> int | None:

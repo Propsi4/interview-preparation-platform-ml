@@ -20,17 +20,12 @@ class ScraperBase(BaseModel, ABC):
     _browser: Browser | None = PrivateAttr(default=None)
     headless: bool = Field(default=False)
 
-    async def _get_browser(self) -> Browser:
+    async def get_browser(self) -> Browser:
         """Get the browser instance."""
         if self._browser is None:
             playwright = await async_playwright().start()
             self._browser = await playwright.chromium.launch(headless=self.headless)
         return self._browser
-
-    @property
-    def browser(self) -> Browser:
-        """Get the browser instance."""
-        return asyncio.run(self._get_browser())
 
     async def aclose(self) -> None:
         """Close the browser instance."""
