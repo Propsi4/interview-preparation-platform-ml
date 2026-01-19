@@ -19,7 +19,7 @@ import_heading_firstparty = "Local imports"
 import_heading_localfolder = "Local folder imports"
 
 [tool.poetry]
-name = "interview_agent"
+name = "interview_preparation_platform"
 version = "0.1.0"
 description = "A platform to analyze the IT vacancies and prepare the candidate for the interview  ."
 authors = ["Vadym Burylo <gaenday328@gmail.com>"]
@@ -30,6 +30,15 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.14"
+pydantic = "^2.12.5"
+sqlalchemy = "^2.0.45"
+alembic = "^1.16.5"
+python-dotenv = "^1.2.1"
+pydantic-settings = "^2.12.0"
+psycopg2-binary = "^2.9.11"
+asyncpg = "^0.31.0"
+playwright = "^1.57.0"
+loguru = "^0.7.3"
 
 
 [tool.poetry.group.dev.dependencies]
