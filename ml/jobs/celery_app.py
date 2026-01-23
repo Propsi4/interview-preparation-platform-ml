@@ -7,7 +7,6 @@ Examples
 tasks
 """
 
-from __future__ import annotations
 
 from celery import Celery
 from ml.config.redis import redis_config

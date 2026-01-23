@@ -1,6 +1,5 @@
 """API routes for scraper operations."""
 
-from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import func, select

@@ -9,7 +9,6 @@ Examples
 >>> # scrape_dou.delay("HR")
 """
 
-from __future__ import annotations
 
 import asyncio
 

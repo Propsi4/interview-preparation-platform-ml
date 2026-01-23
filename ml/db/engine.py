@@ -1,6 +1,5 @@
 """Async SQLAlchemy engine and session helpers."""
 
-from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator

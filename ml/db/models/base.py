@@ -1,6 +1,5 @@
 """Base ORM models and shared mixins."""
 
-from __future__ import annotations
 
 from datetime import datetime
 
