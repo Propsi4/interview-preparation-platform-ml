@@ -54,13 +54,8 @@ class ProgressResponseSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", json_schema_extra={"example": {"search_query_id": 1, "progress": 0.5, "total_results": 100, "processed_results": 50}})
 
 
-class HealthResponseSchema(BaseModel):
-    """Health check response.
+class StatusResponseSchema(BaseModel):
+    """Status response schema."""
 
-    Parameters
-    ----------
-    status : Literal["ok", "error"]
-        Service status string.
-    """
-
-    status: Literal["ok", "error"] = Field(..., description="Health status")
+    status: Literal["ok", "error"] = Field(..., description="Status type")
+    message: str = Field(..., description="Status message")

@@ -7,7 +7,7 @@ import uvicorn
 
 from ml.api.routes.chat_history import router as chat_history_router
 from ml.api.routes.scrapers import router as scrapers_router
-from ml.api.schemas import HealthResponseSchema
+from ml.api.schemas import StatusResponseSchema
 from ml.config.api import api_config
 
 
@@ -40,14 +40,14 @@ app = FastAPI(
 )
 
 
-@app.get("/health", response_model=HealthResponseSchema)
-async def health(request: Request) -> HealthResponseSchema:
+@app.get("/health", response_model=StatusResponseSchema)
+async def health(request: Request) -> StatusResponseSchema:
     """Return service health status, using info set at startup."""
     health_ok = getattr(request.app.state, "health_ok", False)
     if health_ok:
-        return HealthResponseSchema(status="ok")
+        return StatusResponseSchema(status="ok")
     else:
-        return HealthResponseSchema(status="error")
+        return StatusResponseSchema(status="error")
 
 app.include_router(scrapers_router, tags=["Scrapers"])
 app.include_router(chat_history_router, tags=["Chat History"])

@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from loguru import logger
 
 # Local imports
+from ml.api.schemas import StatusResponseSchema
 from ml.conversation_history.manager import ConversationHistoryManager
 from ml.conversation_history.schemas import ChatSessionOverviewSchema, ChatSessionDetailsSchema
 
@@ -69,7 +70,7 @@ async def list_chat_sessions() -> List[ChatSessionOverviewSchema]:
 
 
 @router.patch("/{session_id}/title")
-async def rename_chat_session(session_id: str, new_title: str) -> bool:
+async def rename_chat_session(session_id: str, new_title: str) -> StatusResponseSchema:
     """
     Rename a chat session by its ID.
 
@@ -91,13 +92,13 @@ async def rename_chat_session(session_id: str, new_title: str) -> bool:
         success = await history_manager.update_session_title(session_id, new_title)
 
         if success:
-            return True
+            return StatusResponseSchema(status="ok", message=f"Session {session_id} renamed to '{new_title}'")
         else:
-            return False
+            return StatusResponseSchema(status="error", message=f"Failed to rename session {session_id}")
 
     except Exception as e:
         logger.error(f"Error renaming session {session_id}: {e}", exc_info=True)
-        return False
+        return StatusResponseSchema(status="error", message=f"Failed to rename session {session_id}: {str(e)}")
 
 
 @router.get("/price/{session_id}")
@@ -124,7 +125,7 @@ async def get_session_price(session_id: str) -> float:
 
 
 @router.delete("/{session_id}")
-async def delete_session_history(session_id: str) -> bool:
+async def delete_session_history(session_id: str) -> StatusResponseSchema:
     """
     Delete all messages for a specific session.
 
@@ -135,7 +136,7 @@ async def delete_session_history(session_id: str) -> bool:
 
     Returns
     -------
-    bool
+    StatusResponseSchema
         JSONResponse with success status.
     """
     try:
@@ -145,10 +146,10 @@ async def delete_session_history(session_id: str) -> bool:
         success = await history_manager.delete_chat_by_session_id(session_id)
 
         if success:
-            return True
+            return StatusResponseSchema(status="ok", message=f"Session {session_id} deleted")
         else:
-            return False
+            return StatusResponseSchema(status="error", message=f"Failed to delete session {session_id}. Not found.")
 
     except Exception as e:
         logger.error(f"Error deleting history for session {session_id}: {e}", exc_info=True)
-        return False
+        return StatusResponseSchema(status="error", message=f"Failed to delete session {session_id}: {str(e)}")
