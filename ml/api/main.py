@@ -45,9 +45,9 @@ async def health(request: Request) -> StatusResponseSchema:
     """Return service health status, using info set at startup."""
     health_ok = getattr(request.app.state, "health_ok", False)
     if health_ok:
-        return StatusResponseSchema(status="ok")
+        return StatusResponseSchema(status="ok", message="Service is healthy")
     else:
-        return StatusResponseSchema(status="error")
+        return StatusResponseSchema(status="error", message="Service is not healthy")
 
 app.include_router(scrapers_router, tags=["Scrapers"])
 app.include_router(chat_history_router, tags=["Chat History"])
