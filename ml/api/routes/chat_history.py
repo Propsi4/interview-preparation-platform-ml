@@ -9,7 +9,7 @@ from loguru import logger
 
 # Local imports
 from ml.conversation_history.manager import ConversationHistoryManager
-from ml.conversation_history.schemas import ChatSessionOverview, ChatSessionDetails
+from ml.conversation_history.schemas import ChatSessionOverviewSchema, ChatSessionDetailsSchema
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ history_manager = ConversationHistoryManager()
 
 
 @router.get("/details/{session_id}")
-async def get_messages_for_session(session_id: str) -> ChatSessionDetails:
+async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema:
     """
     Get all messages for a specific chat session.
 
@@ -28,7 +28,7 @@ async def get_messages_for_session(session_id: str) -> ChatSessionDetails:
 
     Returns
     -------
-    ChatSessionDetails
+    ChatSessionDetailsSchema
         JSONResponse with messages for the session.
     """
     try:
@@ -38,7 +38,7 @@ async def get_messages_for_session(session_id: str) -> ChatSessionDetails:
         messages_dicts = await history_manager.get_session_history_with_ids(session_id, filter_tool_calls=True)
         session_price = await history_manager.get_session_price(session_id)
 
-        return ChatSessionDetails(
+        return ChatSessionDetailsSchema(
             session_id=session_id,
             messages=messages_dicts,
             total_messages=len(messages_dicts),
@@ -50,14 +50,14 @@ async def get_messages_for_session(session_id: str) -> ChatSessionDetails:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve messages: {str(e)}")
 
 
-@router.get("/list", response_model=List[ChatSessionOverview])
-async def list_chat_sessions() -> List[ChatSessionOverview]:
+@router.get("/list", response_model=List[ChatSessionOverviewSchema])
+async def list_chat_sessions() -> List[ChatSessionOverviewSchema]:
     """
     List all chat sessions with basic information.
 
     Returns
     -------
-    List[ChatSessionOverview]
+    List[ChatSessionOverviewSchema]
         List of chat sessions.
     """
     try:

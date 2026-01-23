@@ -14,10 +14,10 @@ from sqlalchemy import select, func
 
 # Local folder imports
 from ml.db.engine import connect_to_db
-from ml.db.models.chat_session import ChatSession
-from ml.db.models.chat_message import ChatMessage
+from ml.db.models.chat_session import ChatSessionModel
+from ml.db.models.chat_message import ChatMessageModel
 from .utils import dicts_to_langchain_messages
-from .schemas import ChatSessionOverview, ChatMessage as ChatMessageSchema
+from .schemas import ChatSessionOverviewSchema, ChatMessageSchema
 
 
 class ConversationHistoryManager:
@@ -48,9 +48,9 @@ class ConversationHistoryManager:
 
             async with connect_to_db() as session:
                 query = (
-                    select(ChatMessage)
-                    .filter(ChatMessage.session_id == session_id)
-                    .order_by(ChatMessage.created_at.asc())
+                    select(ChatMessageModel)
+                    .filter(ChatMessageModel.session_id == session_id)
+                    .order_by(ChatMessageModel.created_at.asc())
                 )
                 result = await session.execute(query)
                 messages = result.scalars().all()
@@ -95,9 +95,9 @@ class ConversationHistoryManager:
 
             async with connect_to_db() as session:
                 query = (
-                    select(ChatMessage)
-                    .filter(ChatMessage.session_id == session_id)
-                    .order_by(ChatMessage.created_at.asc())
+                    select(ChatMessageModel)
+                    .filter(ChatMessageModel.session_id == session_id)
+                    .order_by(ChatMessageModel.created_at.asc())
                 )
                 result = await session.execute(query)
                 messages = result.scalars().all()
@@ -122,13 +122,13 @@ class ConversationHistoryManager:
             logger.error(f"Error retrieving messages with IDs for chat session {session_id}: {e}")
             raise
 
-    async def get_all_sessions(self) -> List[ChatSessionOverview]:
+    async def get_all_sessions(self) -> List[ChatSessionOverviewSchema]:
         """
         Retrieve all chat sessions with basic information.
 
         Returns
         -------
-        List[ChatSessionOverview]
+        List[ChatSessionOverviewSchema]
             List of chat sessions with basic information.
 
         Examples
@@ -140,19 +140,19 @@ class ConversationHistoryManager:
         try:
             async with connect_to_db() as session:
                 query = (
-                    select(ChatSession)
-                    .order_by(ChatSession.updated_at.desc())
+                    select(ChatSessionModel)
+                    .order_by(ChatSessionModel.updated_at.desc())
                 )
                 result = await session.execute(query)
                 chat_sessions = result.scalars().all()
-                chat_sessions_info: List[ChatSessionOverview] = []
+                chat_sessions_info: List[ChatSessionOverviewSchema] = []
 
                 for chat_session in chat_sessions:
-                    count_query = select(func.count()).select_from(ChatMessage).filter(ChatMessage.session_id == chat_session.session_id)
+                    count_query = select(func.count()).select_from(ChatMessageModel).filter(ChatMessageModel.session_id == chat_session.session_id)
                     count_result = await session.execute(count_query)
                     total_messages = count_result.scalar_one_or_none()
                     chat_sessions_info.append(
-                        ChatSessionOverview(
+                        ChatSessionOverviewSchema(
                             session_id=chat_session.session_id,
                             title=chat_session.title,
                             created_at=chat_session.created_at,
@@ -188,7 +188,7 @@ class ConversationHistoryManager:
         """
         try:
             async with connect_to_db() as session:
-                query = select(ChatSession).filter(ChatSession.session_id == session_id)
+                query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
                 result = await session.execute(query)
                 chat_session = result.scalar_one_or_none()
                 if chat_session is None:
@@ -222,11 +222,11 @@ class ConversationHistoryManager:
         try:
             async with connect_to_db() as session:
                 try:
-                    query = select(ChatSession).filter(ChatSession.session_id == session_id)
+                    query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
                     result = await session.execute(query)
                     chat_session = result.scalar_one_or_none()
                     if chat_session is None:
-                        chat_session = ChatSession(session_id=session_id, price=0.0)
+                        chat_session = ChatSessionModel(session_id=session_id, price=0.0)
                         session.add(chat_session)
                         await session.flush()
 
@@ -265,7 +265,7 @@ class ConversationHistoryManager:
             async with connect_to_db() as session:
                 try:
                     # Ensure session exists (create if not exists)
-                    query = select(ChatSession).filter(ChatSession.session_id == session_id)
+                    query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
                     result = await session.execute(query)
                     chat_session = result.scalar_one_or_none()
 
@@ -273,14 +273,14 @@ class ConversationHistoryManager:
                         # Get first user message for title if session doesn't exist
                         first_user_msg = next((msg for msg in messages if isinstance(msg, HumanMessage)), None)
                         title = first_user_msg.content[:100] if first_user_msg else None
-                        chat_session = ChatSession(
+                        chat_session = ChatSessionModel(
                             session_id=session_id,
                             title=title,
                         )
                         session.add(chat_session)
 
                     # Save all messages
-                    chat_messages = [ChatMessage(
+                    chat_messages = [ChatMessageModel(
                         session_id=session_id,
                         role=msg.role,
                         content=msg.content,
@@ -323,7 +323,7 @@ class ConversationHistoryManager:
 
             async with connect_to_db() as session:
                 try:
-                    query = select(ChatSession).filter(ChatSession.session_id == session_id)
+                    query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
                     result = await session.execute(query)
                     chat_session = result.scalar_one_or_none()
                     if chat_session:
@@ -366,7 +366,7 @@ class ConversationHistoryManager:
             async with connect_to_db() as session:
                 try:
                     # Delete session (cascade will handle messages due to relationship)
-                    query = select(ChatSession).filter(ChatSession.session_id == session_id)
+                    query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
                     result = await session.execute(query)
                     chat_session = result.scalar_one_or_none()
                     if chat_session:
