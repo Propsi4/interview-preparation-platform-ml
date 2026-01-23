@@ -1,10 +1,10 @@
 """Schemas for vacancies."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 
 
-class Vacancy(BaseModel):
+class VacancySchema(BaseModel):
     """Schema for a scraped vacancy."""
 
     title: str = Field(description="Vacancy title")
@@ -13,8 +13,10 @@ class Vacancy(BaseModel):
     description: str = Field(description="Vacancy description")
     url: str = Field(description="Vacancy URL")
 
+    model_config = ConfigDict(from_attributes=True)
 
-class VacanciesOverview(BaseModel):
+
+class VacanciesOverviewSchema(BaseModel):
     """Schema for a response of scraping vacancies."""
 
     query: str = Field(description="Search query")

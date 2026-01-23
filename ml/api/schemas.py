@@ -1,22 +1,25 @@
 """API request and response schemas."""
 
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Literal
 
 
-class ScrapeVacanciesRequest(BaseModel):
+class ScrapeVacanciesRequestSchema(BaseModel):
     """Request body for scraping vacancies.
 
     Parameters
     ----------
-    query : str
+    search_query : str
         Search query string (e.g., "HR").
     """
 
-    query: str = Field(min_length=1, description="Search query string")
+    search_query: str = Field(min_length=1, description="Search query string")
+
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"example": {"search_query": "Data Scientist"}})
 
 
-class ScrapeVacanciesResponse(BaseModel):
+class ScrapeVacanciesResponseSchema(BaseModel):
     """Response body for scraping request.
 
     Parameters
@@ -28,7 +31,7 @@ class ScrapeVacanciesResponse(BaseModel):
     search_query_id: int = Field(..., description="Search query identifier")
 
 
-class ProgressResponse(BaseModel):
+class ProgressResponseSchema(BaseModel):
     """Response body for search progress.
 
     Parameters
@@ -44,18 +47,20 @@ class ProgressResponse(BaseModel):
     """
 
     search_query_id: int = Field(..., description="Search query identifier")
-    progress: float = Field(..., ge=0.0, le=1.0, description="Completion ratio")
+    progress: float = Field(..., ge=0.0, le=1.0, decimal_places=1, description="Completion ratio")
     total_results: int | None = Field(default=None, description="Total results from source")
     processed_results: int = Field(..., ge=0, description="Processed vacancies count")
 
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"example": {"search_query_id": 1, "progress": 0.5, "total_results": 100, "processed_results": 50}})
 
-class HealthResponse(BaseModel):
+
+class HealthResponseSchema(BaseModel):
     """Health check response.
 
     Parameters
     ----------
-    status : str
+    status : Literal["ok", "error"]
         Service status string.
     """
 
-    status: str = Field(..., description="Health status")
+    status: Literal["ok", "error"] = Field(..., description="Health status")

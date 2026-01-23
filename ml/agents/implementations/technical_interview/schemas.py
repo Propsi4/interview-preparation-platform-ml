@@ -5,14 +5,14 @@ from langchain_core.messages import BaseMessage
 from typing import List
 
 
-class TechnicalInterviewResponse(BaseModel):
+class TechnicalInterviewResponseSchema(BaseModel):
     """Response schema for technical interview agent."""
 
     interview_finished: bool = Field(False, description="Whether the interview is complete")
     response: str = Field(..., description="Next question or final summary if interview is complete")
 
 
-class InterviewTurnRequest(BaseModel):
+class InterviewTurnRequestSchema(BaseModel):
     """Input for running an interview turn.
 
     Parameters

@@ -14,8 +14,8 @@ import asyncio
 
 from typing import List
 from ml.db.engine import connect_to_db
-from ml.db.models.search_query import SearchQuery
-from ml.db.models.vacancies import Vacancy
+from ml.db.models.search_query import SearchQueryModel
+from ml.db.models.vacancies import VacancyModel
 from ml.jobs.celery_app import celery_app
 from ml.scrapers.implementations.dou import DouScraper
 from ml.core.logging import logger
@@ -48,7 +48,7 @@ def scrape_vacancies_overview(search_query_id: int, query: str) -> int:
 
     async def _update_search_query(search_query_id: int, total_results: int) -> None:
         async with connect_to_db() as session:
-            search_query = await session.get(SearchQuery, search_query_id)
+            search_query = await session.get(SearchQueryModel, search_query_id)
             if search_query is None:
                 raise ValueError(f"Search query {search_query_id} not found")
             search_query.total_results = total_results
@@ -57,7 +57,7 @@ def scrape_vacancies_overview(search_query_id: int, query: str) -> int:
 
     async def _add_vacancies(search_query_id: int, vacancies_urls: List[str]) -> List[int]:
         async with connect_to_db() as session:
-            vacancies = [Vacancy(search_query_id=search_query_id, url=url) for url in vacancies_urls]
+            vacancies = [VacancyModel(search_query_id=search_query_id, url=url) for url in vacancies_urls]
             session.add_all(vacancies)
             await session.commit()
             logger.info(f"Added {len(vacancies)} vacancies for search query {search_query_id}")

@@ -10,10 +10,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ml.db.models.base import TimestampedBase
 
 if TYPE_CHECKING:
-    from ml.db.models.chat_session import ChatSession
+    from ml.db.models.chat_session import ChatSessionModel
 
 
-class ChatMessage(TimestampedBase):
+class ChatMessageModel(TimestampedBase):
     """SQLAlchemy model for chat messages table."""
 
     __tablename__ = "chat_messages"
@@ -22,7 +22,7 @@ class ChatMessage(TimestampedBase):
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
-    session: Mapped["ChatSession"] = relationship("ChatSession", back_populates="messages")
+    session: Mapped["ChatSessionModel"] = relationship("ChatSessionModel", back_populates="messages")
 
     # Add check constraint for role
     __table_args__ = (

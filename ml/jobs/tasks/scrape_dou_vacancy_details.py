@@ -12,8 +12,8 @@ Examples
 
 import asyncio
 
-from ml.db.models.vacancies import Vacancy
-from ml.scrapers.schemas.vacancy import Vacancy as VacancySchema
+from ml.scrapers.schemas.vacancy import VacancySchema
+from ml.db.models.vacancies import VacancyModel
 from ml.db.engine import connect_to_db
 from ml.core.logging import logger
 from ml.jobs.celery_app import celery_app
@@ -43,10 +43,10 @@ def scrape_vacancy_details(
         Vacancy with updated details.
     """
 
-    async def _scrape_vacancy(vacancy_id: int) -> Vacancy:
+    async def _scrape_vacancy(vacancy_id: int) -> VacancySchema:
         async with connect_to_db() as session:
             scraper = DouScraper()
-            vacancy = await session.get(Vacancy, vacancy_id)
+            vacancy = await session.get(VacancyModel, vacancy_id)
             scraped = await scraper.scrape_vacancy(vacancy.url)
 
             # Update vacancy with the scraped data

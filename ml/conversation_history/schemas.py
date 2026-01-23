@@ -6,7 +6,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class ChatSessionOverview(BaseModel):
+class ChatSessionOverviewSchema(BaseModel):
     """Chat sessions overview schema."""
 
     session_id: str = Field(..., description="Session ID")
@@ -17,7 +17,7 @@ class ChatSessionOverview(BaseModel):
     price: float = Field(..., description="Session price")
 
 
-class ChatMessage(BaseModel):
+class ChatMessageSchema(BaseModel):
     """Chat message schema."""
 
     id: int = Field(..., description="Message ID")
@@ -26,7 +26,7 @@ class ChatMessage(BaseModel):
     created_at: datetime = Field(..., description="Message creation timestamp")
 
 
-class ChatSessionDetails(ChatSessionOverview):
+class ChatSessionDetailsSchema(ChatSessionOverviewSchema):
     """Chat session details schema."""
 
-    messages: List[ChatMessage] = Field(..., description="List of messages in the session")
+    messages: List[ChatMessageSchema] = Field(..., description="List of messages in the session")

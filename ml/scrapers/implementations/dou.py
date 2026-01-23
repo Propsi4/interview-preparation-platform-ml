@@ -12,7 +12,7 @@ from typing import Iterable
 
 from playwright.async_api import Locator, Page
 from pydantic import PrivateAttr
-from ml.scrapers.schemas.vacancy import VacanciesOverview, Vacancy
+from ml.scrapers.schemas.vacancy import VacanciesOverviewSchema, VacancySchema
 from ml.scrapers.base import ScraperBase
 from ml.core.logging import logger
 
@@ -67,7 +67,7 @@ class DouScraper(ScraperBase):
         locators = await page.locator("a.vt").all()
         return [await locator.get_attribute("href") for locator in locators]
 
-    async def scrape_vacancy(self, url: str) -> Vacancy:
+    async def scrape_vacancy(self, url: str) -> VacancySchema:
         """Extract vacancy data from the page."""
         browser = await self.get_browser()
         page = await browser.new_page()
@@ -88,7 +88,7 @@ class DouScraper(ScraperBase):
                 title_coro, company_name_coro, location_coro, description_coro
             )
 
-            return Vacancy(
+            return VacancySchema(
                 title=title,
                 company=company,
                 location=location,
@@ -120,7 +120,7 @@ class DouScraper(ScraperBase):
         except Exception:
             return None
 
-    async def arun(self, query: str) -> VacanciesOverview:
+    async def arun(self, query: str) -> VacanciesOverviewSchema:
         """
         Scrape vacancies for a query.
 
@@ -135,6 +135,6 @@ class DouScraper(ScraperBase):
             logger.info(f"Scraped {total_results} vacancies for query: {query}")
             await self._expand_vacancies_list_page(page)
             vacancies_urls = await self._extract_vacancies_urls_from_page(page)
-            return VacanciesOverview(query=query, total_results=total_results, vacancies_urls=vacancies_urls)
+            return VacanciesOverviewSchema(query=query, total_results=total_results, vacancies_urls=vacancies_urls)
         finally:
             await self.aclose()

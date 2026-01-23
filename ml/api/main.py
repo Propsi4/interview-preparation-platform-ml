@@ -1,12 +1,26 @@
 """FastAPI application entrypoint."""
 
-from typing import List
-from fastapi import FastAPI
+from typing import List, AsyncGenerator
+from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
 import uvicorn
 
-from ml.api.routes.scrapers import router
+from ml.api.routes.chat_history import router as chat_history_router
+from ml.api.routes.scrapers import router as scrapers_router
 from ml.api.schemas import HealthResponse
 from ml.config.api import api_config
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator:
+    """Lifespan function to check health at startup."""
+    from ml.conversation_history.manager import ConversationHistoryManager
+    manager = ConversationHistoryManager()
+    services_health: List[bool] = [
+        await manager.check_health(),
+    ]
+    app.state.health_ok = all(services_health)
+    yield
 
 app = FastAPI(
     title="Interview Preparation Platform API",
@@ -22,30 +36,21 @@ app = FastAPI(
         "name": "MIT License",
         "url": "https://opensource.org/licenses/MIT",
     },
+    lifespan=lifespan,
 )
 
 
 @app.get("/health", response_model=HealthResponse)
-async def health() -> HealthResponse:
-    """
-    Return service health status.
-
-    Returns
-    -------
-    HealthResponse
-        Health status payload.
-    """
-    from ml.conversation_history.manager import ConversationHistoryManager
-    manager = ConversationHistoryManager()
-    services_health: List[bool] = [
-        await manager.check_health(),
-    ]
-    if all(services_health):
+async def health(request: Request) -> HealthResponse:
+    """Return service health status, using info set at startup."""
+    health_ok = getattr(request.app.state, "health_ok", False)
+    if health_ok:
         return HealthResponse(status="ok")
     else:
         return HealthResponse(status="error")
 
-app.include_router(router, tags=["scrapers"])
+app.include_router(scrapers_router, tags=["Scrapers"])
+app.include_router(chat_history_router, tags=["Chat History"])
 
 
 if __name__ == "__main__":

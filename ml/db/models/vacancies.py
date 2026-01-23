@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from ml.db.models.base import TimestampedBase
 
 
-class Vacancy(TimestampedBase):
+class VacancyModel(TimestampedBase):
     """Vacancies content captured for a search query."""
 
     __tablename__ = "vacancies"

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from ml.db.models.base import TimestampedBase
 
 
-class SearchQuery(TimestampedBase):
+class SearchQueryModel(TimestampedBase):
     """User search queries."""
 
     __tablename__ = "search_queries"

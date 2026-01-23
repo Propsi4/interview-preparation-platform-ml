@@ -8,10 +8,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ml.db.models.base import TimestampedBase
 
 if TYPE_CHECKING:
-    from ml.db.models.chat_message import ChatMessage
+    from ml.db.models.chat_message import ChatMessageModel
 
 
-class ChatSession(TimestampedBase):
+class ChatSessionModel(TimestampedBase):
     """SQLAlchemy model for chat sessions table."""
 
     __tablename__ = "chat_sessions"
@@ -20,8 +20,8 @@ class ChatSession(TimestampedBase):
     title: Mapped[str | None] = mapped_column(Text, nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
-    messages: Mapped[list["ChatMessage"]] = relationship(
-        "ChatMessage",
+    messages: Mapped[list["ChatMessageModel"]] = relationship(
+        "ChatMessageModel",
         back_populates="session",
         cascade="all, delete-orphan",
     )
