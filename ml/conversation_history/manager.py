@@ -17,7 +17,7 @@ from ml.db.engine import connect_to_db
 from ml.db.models.chat_session import ChatSession
 from ml.db.models.chat_message import ChatMessage
 from .utils import dicts_to_langchain_messages
-from .schemas import ChatSessionsOverview, ChatMessage as ChatMessageSchema
+from .schemas import ChatSessionOverview, ChatMessage as ChatMessageSchema
 
 
 class ConversationHistoryManager:
@@ -122,20 +122,20 @@ class ConversationHistoryManager:
             logger.error(f"Error retrieving messages with IDs for chat session {session_id}: {e}")
             raise
 
-    async def get_all_sessions(self) -> List[ChatSessionsOverview]:
+    async def get_all_sessions(self) -> List[ChatSessionOverview]:
         """
         Retrieve all chat sessions with basic information.
 
         Returns
         -------
-        List[ChatSessionsOverview]
+        List[ChatSessionOverview]
             List of chat sessions with basic information.
 
         Examples
         --------
         >>> manager = ConversationHistoryManager()
         >>> sessions = await manager.get_all_sessions()
-        >>> # Returns: [ChatSessionsOverview(session_id="chat_session_123", title="Hello", created_at=datetime.datetime(2021, 1, 1, 0, 0, 0), updated_at=datetime.datetime(2021, 1, 1, 0, 0, 0), message_count=10, price=10.0), ...]
+        >>> # Returns: [ChatSessionOverview(session_id="chat_session_123", title="Hello", created_at=datetime.datetime(2021, 1, 1, 0, 0, 0), updated_at=datetime.datetime(2021, 1, 1, 0, 0, 0), total_messages=10, price=10.0), ...]
         """
         try:
             async with connect_to_db() as session:
@@ -145,19 +145,19 @@ class ConversationHistoryManager:
                 )
                 result = await session.execute(query)
                 chat_sessions = result.scalars().all()
-                chat_sessions_info: List[ChatSessionsOverview] = []
+                chat_sessions_info: List[ChatSessionOverview] = []
 
                 for chat_session in chat_sessions:
                     count_query = select(func.count()).select_from(ChatMessage).filter(ChatMessage.session_id == chat_session.session_id)
                     count_result = await session.execute(count_query)
-                    message_count = count_result.scalar_one_or_none()
+                    total_messages = count_result.scalar_one_or_none()
                     chat_sessions_info.append(
-                        ChatSessionsOverview(
+                        ChatSessionOverview(
                             session_id=chat_session.session_id,
                             title=chat_session.title,
                             created_at=chat_session.created_at,
                             updated_at=chat_session.updated_at,
-                            message_count=message_count,
+                            total_messages=total_messages,
                             price=chat_session.price,
                         )
                     )

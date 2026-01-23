@@ -1,6 +1,6 @@
 """FastAPI application entrypoint."""
 
-
+from typing import List
 from fastapi import FastAPI
 import uvicorn
 
@@ -35,7 +35,15 @@ async def health() -> HealthResponse:
     HealthResponse
         Health status payload.
     """
-    return HealthResponse(status="ok")
+    from ml.conversation_history.manager import ConversationHistoryManager
+    manager = ConversationHistoryManager()
+    services_health: List[bool] = [
+        await manager.check_health(),
+    ]
+    if all(services_health):
+        return HealthResponse(status="ok")
+    else:
+        return HealthResponse(status="error")
 
 app.include_router(router, tags=["scrapers"])
 
