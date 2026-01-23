@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import Boolean, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ml.db.models.base import TimestampedBase
@@ -14,8 +14,9 @@ class Vacancy(TimestampedBase):
     __tablename__ = "vacancies"
 
     search_query_id: Mapped[int] = mapped_column(ForeignKey("search_queries.id"), nullable=False)
-    title: Mapped[str] = mapped_column(Text, nullable=False)
-    company: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str | None] = mapped_column(Text, nullable=True)
+    company: Mapped[str | None] = mapped_column(Text, nullable=True)
     location: Mapped[str | None] = mapped_column(Text, nullable=True)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     url: Mapped[str] = mapped_column(Text, nullable=False)
+    scrapped: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

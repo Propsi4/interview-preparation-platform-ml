@@ -6,11 +6,10 @@ Environment variables use the prefix SQL_ (e.g., SQL_POSTGRES_URL).
 """
 
 # Thirdparty imports
-from typing import TYPE_CHECKING
-
 from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
+from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy import URL
 
 load_dotenv(override=True)
@@ -96,8 +95,9 @@ class DatabaseSQLConfig(ConnectionConfig, BaseSettings):
             database=self.DB_NAME,
         )
 
-    def get_engine(self) -> "AsyncEngine":
-        """Return the global async SQLAlchemy engine.
+    def get_engine(self) -> AsyncEngine:
+        """
+        Return the global async SQLAlchemy engine.
 
         Returns
         -------
@@ -107,10 +107,6 @@ class DatabaseSQLConfig(ConnectionConfig, BaseSettings):
         from ml.db.engine import get_engine
 
         return get_engine(self)
-
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
 
 
 db_config = DatabaseSQLConfig()

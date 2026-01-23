@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Any, Iterable
-from playwright.async_api import Browser, async_playwright
+from playwright.async_api import Browser, Playwright, async_playwright
 
 from pydantic import BaseModel, Field, PrivateAttr
 import asyncio
@@ -17,14 +17,15 @@ class ScraperBase(BaseModel, ABC):
     """
 
     source_name: str = Field(description="Name of the source to scrape")
+    headless: bool = Field(default=True)
     _browser: Browser | None = PrivateAttr(default=None)
-    headless: bool = Field(default=False)
+    _playwright: Playwright | None = PrivateAttr(default=None)
 
     async def get_browser(self) -> Browser:
         """Get the browser instance."""
         if self._browser is None:
-            playwright = await async_playwright().start()
-            self._browser = await playwright.chromium.launch(headless=self.headless)
+            self._playwright = await async_playwright().start()
+            self._browser = await self._playwright.chromium.launch(headless=self.headless)
         return self._browser
 
     async def aclose(self) -> None:
@@ -32,7 +33,9 @@ class ScraperBase(BaseModel, ABC):
         if self._browser is not None:
             await self._browser.close()
             self._browser = None
-        self._browser = None
+        if self._playwright is not None:
+            await self._playwright.stop()
+            self._playwright = None
 
     def close(self) -> None:
         """Close the browser instance."""
@@ -46,7 +49,8 @@ class ScraperBase(BaseModel, ABC):
         str | bytes
             Raw response payload from the target source.
         """
-        page = await self.browser.new_page()
+        browser = await self.get_browser()
+        page = await browser.new_page()
         await page.goto(url)
         return await page.content()
 
@@ -55,7 +59,7 @@ class ScraperBase(BaseModel, ABC):
         return asyncio.run(self.afetch(url, *args, **kwargs))
 
     @abstractmethod
-    def run(self, *args: Any, **kwargs: Any) -> Iterable[dict[str, Any]]:
+    async def arun(self, *args: Any, **kwargs: Any) -> Iterable[dict[str, Any]]:
         """
         Execute the full scraping pipeline.
 
@@ -65,7 +69,7 @@ class ScraperBase(BaseModel, ABC):
             Normalized records produced by the scraper.
         """
 
-    async def arun(self, *args: Any, **kwargs: Any) -> Iterable[dict[str, Any]]:
+    def run(self, *args: Any, **kwargs: Any) -> Iterable[dict[str, Any]]:
         """
         Execute the scraper asynchronously.
 
@@ -79,4 +83,4 @@ class ScraperBase(BaseModel, ABC):
         Iterable[dict[str, Any]]
             Normalized records produced by the scraper.
         """
-        return await asyncio.to_thread(self.run, *args, **kwargs)
+        return asyncio.run(self.arun(*args, **kwargs))

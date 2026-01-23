@@ -1,7 +1,6 @@
 """Configuration module for the Interview Preparation Platform."""
 
 # Standart library imports
-from ml.config.db import DatabaseSQLConfig
 from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -42,26 +41,4 @@ class OpenAIConfig(BaseSettings):
     )
 
 
-class APIConfig(BaseSettings):
-    """API configuration for the interview preparation platform."""
-
-    API_HOST: str = Field(
-        default="0.0.0.0",
-        description="Host address for the API server of the interview preparation platform",
-    )
-    API_PORT: int = Field(
-        default=8080,
-        description="Port for the API server of the interview preparation platform",
-    )
-
-
-class Settings(OpenAIConfig, DatabaseSQLConfig, APIConfig, BaseSettings):
-    """
-    Settings class for the Interview Preparation Platform.
-
-    This class is used to load and validate environment variables
-    and configuration settings for the interview preparation platform's operation.
-    """
-
-
-app_config = Settings()
+openai_config = OpenAIConfig()

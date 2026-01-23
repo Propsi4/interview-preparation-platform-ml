@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from ml.config.db import DatabaseSQLConfig, db_config
-
-_engine: AsyncEngine | None = None
-_sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
 
 def get_engine(config: DatabaseSQLConfig | None = None) -> AsyncEngine:
@@ -24,20 +23,15 @@ def get_engine(config: DatabaseSQLConfig | None = None) -> AsyncEngine:
     AsyncEngine
         Initialized async SQLAlchemy engine.
     """
-    global _engine
-
-    if _engine is not None:
-        return _engine
-
     resolved_config = config or db_config
-    _engine = create_async_engine(
+    engine = create_async_engine(
         resolved_config.DATABASE_URL,
         echo=resolved_config.ECHO,
         pool_size=resolved_config.POOL_SIZE,
         max_overflow=resolved_config.MAX_OVERFLOW,
         pool_timeout=resolved_config.POOL_TIMEOUT,
     )
-    return _engine
+    return engine
 
 
 def get_sessionmaker(config: DatabaseSQLConfig | None = None) -> async_sessionmaker[AsyncSession]:
@@ -54,23 +48,29 @@ def get_sessionmaker(config: DatabaseSQLConfig | None = None) -> async_sessionma
     async_sessionmaker[AsyncSession]
         Session factory bound to the async engine.
     """
-    global _sessionmaker
-
-    if _sessionmaker is not None:
-        return _sessionmaker
-
     engine = get_engine(config)
-    _sessionmaker = async_sessionmaker(bind=engine, expire_on_commit=False)
-    return _sessionmaker
+    sessionmaker = async_sessionmaker(bind=engine, expire_on_commit=False)
+    return sessionmaker
 
 
-async def close_engine() -> None:
-    """Dispose the global async engine."""
-    global _engine, _sessionmaker
+@asynccontextmanager
+async def connect_to_db() -> AsyncGenerator[AsyncSession]:
+    """
+    Get database session context manager.
 
-    if _engine is None:
-        return
+    Yields
+    ------
+    AsyncSession
+        SQLAlchemy database session.
 
-    await _engine.dispose()
-    _engine = None
-    _sessionmaker = None
+    Notes
+    -----
+    The session WILL be automatically closed when exiting the context manager
+    (`async with connect_to_db() as session: ...`). You do NOT need to close it manually.
+    """
+    sessionmaker = get_sessionmaker()
+    async with sessionmaker() as session:
+        try:
+            yield session
+        finally:
+            await session.close()

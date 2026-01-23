@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
 
 from alembic import context
 
-from ml.config.settings import app_config
+from ml.config.db import db_config
 from ml.db import models
 
 
@@ -27,7 +27,7 @@ def run_migrations_offline() -> None:
 
     """
     context.configure(
-        url=app_config.DATABASE_URL,
+        url=db_config.DATABASE_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -48,8 +48,8 @@ def do_run_migrations(connection: AsyncConnection) -> None:
 async def run_async_migrations() -> None:
     """Run migrations in 'online' mode asynchronously."""
     engine = create_async_engine(
-        app_config.DATABASE_URL,
-        echo=app_config.ECHO,
+        db_config.DATABASE_URL,
+        echo=db_config.ECHO,
         poolclass=pool.NullPool,
     )
     async with engine.connect() as connection:

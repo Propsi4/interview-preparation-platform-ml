@@ -8,7 +8,7 @@ from ml.db.models.base import TimestampedBase
 
 
 class SearchQuery(TimestampedBase):
-    """User search queries for indexation."""
+    """User search queries."""
 
     __tablename__ = "search_queries"
 

@@ -1,0 +1,1 @@
+celery -A ml.jobs.celery_app.celery_app worker -l info
