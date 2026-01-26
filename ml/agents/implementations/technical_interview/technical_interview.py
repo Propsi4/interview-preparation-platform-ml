@@ -55,14 +55,14 @@ async def run_interview(request: InterviewTurnRequestSchema) -> TechnicalIntervi
     """
     descriptions = await _load_descriptions(request.search_query_id)
     agent = TechnicalInterviewAgent()
-    prediction = agent(
+    response = agent(
         vacancy_descriptions=descriptions,
         chat_history=request.chat_history,
         query=request.query,
-    )
+    ).response
     return TechnicalInterviewResponseSchema(
-        interview_finished=prediction.interview_finished,
-        response=prediction.response,
+        interview_finished=response.interview_finished,
+        response=response.response,
     )
 
 

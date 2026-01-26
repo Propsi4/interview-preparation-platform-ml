@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ml.db.models.search_query import SearchQueryModel
 from ml.db.repositories.base import BaseRepository
+from ml.db.repositories.vacancies import VacancyRepository
 
 
 class SearchQueryRepository(BaseRepository[SearchQueryModel]):
@@ -41,3 +42,21 @@ class SearchQueryRepository(BaseRepository[SearchQueryModel]):
             Updated entity.
         """
         return await self.update(search_query, {"total_results": total_results})
+
+    async def get_progress(self, search_query_id: int) -> float | None:
+        """
+        Get progress for a search query.
+
+        Parameters
+        ----------
+        search_query_id : int
+            Search query identifier.
+        """
+        search_query = await self.get(search_query_id)
+        if search_query is None:
+            return None
+        total_results = search_query.total_results
+        processed_results = await VacancyRepository(self._session).count_by_search_query_id(search_query_id=search_query_id)
+        if total_results is None:
+            return None
+        return round(min(processed_results / total_results, 1.0), 1)
