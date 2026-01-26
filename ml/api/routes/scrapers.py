@@ -1,12 +1,11 @@
 """API routes for scraper operations."""
 
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import func, select
-
 from ml.api.schemas import ProgressResponseSchema, ScrapeVacanciesRequestSchema, ScrapeVacanciesResponseSchema
 from ml.db.engine import connect_to_db
 from ml.db.models.search_query import SearchQueryModel
-from ml.db.models.vacancies import VacancyModel
+from ml.db.repositories.search_queries import SearchQueryRepository
+from ml.db.repositories.vacancies import VacancyRepository
 from ml.jobs.celery_app import celery_app
 
 router = APIRouter()
@@ -28,10 +27,11 @@ async def scrape_vacancies(payload: ScrapeVacanciesRequestSchema) -> ScrapeVacan
         Search query identifier.
     """
     async with connect_to_db() as session:
+        query_repo = SearchQueryRepository(session)
         search_query = SearchQueryModel(query=payload.search_query)
-        session.add(search_query)
-        await session.commit()
-        await session.refresh(search_query)
+        await query_repo.add(search_query)
+        await query_repo.commit()
+        await query_repo.refresh(search_query)
 
         celery_app.send_task(
             name="scrapers.dou.scrape_vacancies_overview",
@@ -56,12 +56,13 @@ async def progress(search_query_id: int) -> ProgressResponseSchema:
         Progress metrics for the search query.
     """
     async with connect_to_db() as session:
-        search_query = await session.get(SearchQueryModel, search_query_id)
+        query_repo = SearchQueryRepository(session)
+        vacancy_repo = VacancyRepository(session)
+        search_query = await query_repo.get(search_query_id)
         if search_query is None:
             raise HTTPException(status_code=404, detail="Search query not found")
 
-        stmt = select(func.count()).select_from(VacancyModel).where(VacancyModel.search_query_id == search_query_id)
-        processed_results = int(await session.scalar(stmt) or 0)
+        processed_results = await vacancy_repo.count_by_search_query_id(search_query_id)
         total_results = search_query.total_results
         progress_value = 0.0
         if total_results and total_results > 0:

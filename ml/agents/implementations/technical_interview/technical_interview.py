@@ -4,10 +4,8 @@ from typing import List
 
 import dspy
 from langchain_core.messages import BaseMessage
-from sqlalchemy import select
-
 from ml.db.engine import connect_to_db
-from ml.db.models.vacancies import VacancyModel
+from ml.db.repositories.vacancies import VacancyRepository
 from ml.agents.implementations.technical_interview.schemas import InterviewTurnRequestSchema, TechnicalInterviewResponseSchema
 
 
@@ -82,6 +80,5 @@ async def _load_descriptions(search_query_id: int) -> List[str]:
         Collected vacancy descriptions.
     """
     async with connect_to_db() as session:
-        result = await session.execute(select(VacancyModel).where(VacancyModel.search_query_id == search_query_id))
-        vacancies = result.scalars().all()
-        return [vacancy.description for vacancy in vacancies if vacancy.description is not None]
+        vacancy_repo = VacancyRepository(session)
+        return await vacancy_repo.list_descriptions(search_query_id)

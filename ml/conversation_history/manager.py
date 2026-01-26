@@ -10,12 +10,14 @@ from typing import List
 # Thirdparty imports
 from langchain_core.messages import BaseMessage, HumanMessage
 from loguru import logger
-from sqlalchemy import select, func
+from sqlalchemy import select
 
 # Local folder imports
 from ml.db.engine import connect_to_db
 from ml.db.models.chat_session import ChatSessionModel
 from ml.db.models.chat_message import ChatMessageModel
+from ml.db.repositories.chat_messages import ChatMessageRepository
+from ml.db.repositories.chat_sessions import ChatSessionRepository
 from .utils import dicts_to_langchain_messages
 from .schemas import ChatSessionOverviewSchema, ChatMessageSchema
 
@@ -47,13 +49,8 @@ class ConversationHistoryManager:
             logger.info(f"Retrieving messages for chat session: {session_id}")
 
             async with connect_to_db() as session:
-                query = (
-                    select(ChatMessageModel)
-                    .filter(ChatMessageModel.session_id == session_id)
-                    .order_by(ChatMessageModel.created_at.asc())
-                )
-                result = await session.execute(query)
-                messages = result.scalars().all()
+                message_repo = ChatMessageRepository(session)
+                messages = await message_repo.list_by_session_id(session_id)
 
                 # Convert to dictionaries then to LangChain messages
                 message_dicts = [{"role": msg.role, "content": msg.content} for msg in messages]
@@ -94,13 +91,8 @@ class ConversationHistoryManager:
             logger.info(f"Retrieving messages with IDs for chat session: {session_id}")
 
             async with connect_to_db() as session:
-                query = (
-                    select(ChatMessageModel)
-                    .filter(ChatMessageModel.session_id == session_id)
-                    .order_by(ChatMessageModel.created_at.asc())
-                )
-                result = await session.execute(query)
-                messages = result.scalars().all()
+                message_repo = ChatMessageRepository(session)
+                messages = await message_repo.list_by_session_id(session_id)
 
                 if filter_tool_calls:
                     messages = [msg for msg in messages if msg.role != "tool"]
@@ -139,18 +131,13 @@ class ConversationHistoryManager:
         """
         try:
             async with connect_to_db() as session:
-                query = (
-                    select(ChatSessionModel)
-                    .order_by(ChatSessionModel.updated_at.desc())
-                )
-                result = await session.execute(query)
-                chat_sessions = result.scalars().all()
+                session_repo = ChatSessionRepository(session)
+                message_repo = ChatMessageRepository(session)
+                chat_sessions = await session_repo.list_all()
                 chat_sessions_info: List[ChatSessionOverviewSchema] = []
 
                 for chat_session in chat_sessions:
-                    count_query = select(func.count()).select_from(ChatMessageModel).filter(ChatMessageModel.session_id == chat_session.session_id)
-                    count_result = await session.execute(count_query)
-                    total_messages = count_result.scalar_one_or_none()
+                    total_messages = await message_repo.count_by_session_id(chat_session.session_id)
                     chat_sessions_info.append(
                         ChatSessionOverviewSchema(
                             session_id=chat_session.session_id,
@@ -188,9 +175,8 @@ class ConversationHistoryManager:
         """
         try:
             async with connect_to_db() as session:
-                query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
-                result = await session.execute(query)
-                chat_session = result.scalar_one_or_none()
+                session_repo = ChatSessionRepository(session)
+                chat_session = await session_repo.get_by_session_id(session_id)
                 if chat_session is None:
                     return 0.0
                 return chat_session.price
@@ -222,16 +208,15 @@ class ConversationHistoryManager:
         try:
             async with connect_to_db() as session:
                 try:
-                    query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
-                    result = await session.execute(query)
-                    chat_session = result.scalar_one_or_none()
+                    session_repo = ChatSessionRepository(session)
+                    chat_session = await session_repo.get_by_session_id(session_id)
                     if chat_session is None:
                         chat_session = ChatSessionModel(session_id=session_id, price=0.0)
-                        session.add(chat_session)
-                        await session.flush()
+                        await session_repo.add(chat_session)
+                        await session_repo.flush()
 
                     chat_session.price = chat_session.price + price_delta
-                    await session.commit()
+                    await session_repo.commit()
                     return chat_session.price
                 except Exception:
                     await session.rollback()
@@ -264,30 +249,30 @@ class ConversationHistoryManager:
 
             async with connect_to_db() as session:
                 try:
-                    # Ensure session exists (create if not exists)
-                    query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
-                    result = await session.execute(query)
-                    chat_session = result.scalar_one_or_none()
+                    session_repo = ChatSessionRepository(session)
+                    message_repo = ChatMessageRepository(session)
+                    chat_session = await session_repo.get_by_session_id(session_id)
 
                     if not chat_session:
-                        # Get first user message for title if session doesn't exist
                         first_user_msg = next((msg for msg in messages if isinstance(msg, HumanMessage)), None)
                         title = first_user_msg.content[:100] if first_user_msg else None
                         chat_session = ChatSessionModel(
                             session_id=session_id,
                             title=title,
                         )
-                        session.add(chat_session)
+                        await session_repo.add(chat_session)
 
-                    # Save all messages
-                    chat_messages = [ChatMessageModel(
-                        session_id=session_id,
-                        role=msg.role,
-                        content=msg.content,
-                    ) for msg in messages]
-                    session.add_all(chat_messages)
+                    chat_messages = [
+                        ChatMessageModel(
+                            session_id=session_id,
+                            role=msg.role,
+                            content=msg.content,
+                        )
+                        for msg in messages
+                    ]
+                    await message_repo.add_all(chat_messages)
 
-                    await session.commit()
+                    await session_repo.commit()
                     logger.info(f"Successfully saved {len(messages)} messages for chat session: {session_id}")
                 except Exception:
                     await session.rollback()
@@ -323,12 +308,11 @@ class ConversationHistoryManager:
 
             async with connect_to_db() as session:
                 try:
-                    query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
-                    result = await session.execute(query)
-                    chat_session = result.scalar_one_or_none()
+                    session_repo = ChatSessionRepository(session)
+                    chat_session = await session_repo.get_by_session_id(session_id)
                     if chat_session:
                         chat_session.title = new_title
-                        await session.commit()
+                        await session_repo.commit()
                         logger.info(f"Successfully updated title for chat session: {session_id}")
                         return True
                     logger.warning(f"Session {session_id} not found for title update")
@@ -365,13 +349,11 @@ class ConversationHistoryManager:
 
             async with connect_to_db() as session:
                 try:
-                    # Delete session (cascade will handle messages due to relationship)
-                    query = select(ChatSessionModel).filter(ChatSessionModel.session_id == session_id)
-                    result = await session.execute(query)
-                    chat_session = result.scalar_one_or_none()
+                    session_repo = ChatSessionRepository(session)
+                    chat_session = await session_repo.get_by_session_id(session_id)
                     if chat_session:
-                        await session.delete(chat_session)
-                        await session.commit()
+                        await session_repo.delete(chat_session)
+                        await session_repo.commit()
                         logger.info(f"Successfully deleted chat for chat session: {session_id}")
                         return True
                     return False
