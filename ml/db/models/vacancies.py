@@ -1,6 +1,5 @@
 """ORM models for search queries."""
 
-
 from sqlalchemy import Boolean, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column
 

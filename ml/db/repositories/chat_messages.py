@@ -39,11 +39,7 @@ class ChatMessageRepository(BaseRepository[ChatMessageModel]):
         list[ChatMessageModel]
             Messages ordered by created_at ascending.
         """
-        stmt = (
-            select(self.model)
-            .where(self.model.session_id == session_id)
-            .order_by(self.model.created_at.asc())
-        )
+        stmt = select(self.model).where(self.model.session_id == session_id).order_by(self.model.created_at.asc())
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

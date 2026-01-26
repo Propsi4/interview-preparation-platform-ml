@@ -1,6 +1,5 @@
 """Base ORM models and shared mixins."""
 
-
 from datetime import datetime
 
 from sqlalchemy import DateTime, MetaData, func

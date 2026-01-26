@@ -6,6 +6,7 @@ Examples
 >>> from ml.scrapers.dou import DouScraper
 >>> asyncio.run(DouScraper().async_run("HR"))
 """
+
 import asyncio
 import re
 from typing import Iterable
@@ -51,12 +52,14 @@ class DouScraper(ScraperBase):
                 break
 
             # Execute the jQuery script inside the browser
-            await page.evaluate(f"""
+            await page.evaluate(
+                f"""
                 var $btn = $('{selector}');
                 $btn.trigger('mousedown');
                 $btn.trigger('mouseup');
                 $btn.trigger('click');
-            """)
+            """
+            )
             if await a_tag.get_attribute("style") == "display: none;":
                 break
         await page.wait_for_load_state("domcontentloaded")
@@ -79,9 +82,7 @@ class DouScraper(ScraperBase):
             company_coro = page.locator(".info, .l-n").first
             company_name_coro = self._safe_text(company_coro.locator("a").first)
             location_coro = self._safe_text(page.locator(".place, .location, .city").first)
-            description_coro = self._safe_text(
-                page.locator(".b-typo, .vacancy-section").first
-            )
+            description_coro = self._safe_text(page.locator(".b-typo, .vacancy-section").first)
 
             # Run all extraction coroutines in parallel for better performance
             title, company, location, description = await asyncio.gather(

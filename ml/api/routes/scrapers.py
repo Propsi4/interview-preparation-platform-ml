@@ -11,7 +11,7 @@ from ml.jobs.celery_app import celery_app
 router = APIRouter()
 
 
-@router.post("/scrape-vacancies", response_model=ScrapeVacanciesResponseSchema, status_code=202)
+@router.post("/scrape_vacancies", response_model=ScrapeVacanciesResponseSchema, status_code=202)
 async def scrape_vacancies(payload: ScrapeVacanciesRequestSchema) -> ScrapeVacanciesResponseSchema:
     """
     Enqueue a vacancies scraping job.

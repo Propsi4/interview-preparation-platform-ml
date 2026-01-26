@@ -1,6 +1,5 @@
 """ORM models for search queries."""
 
-
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ml.db.models.base import TimestampedBase

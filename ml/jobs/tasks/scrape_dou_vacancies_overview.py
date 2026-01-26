@@ -9,7 +9,6 @@ Examples
 >>> # scrape_dou.delay("HR")
 """
 
-
 import asyncio
 
 from typing import List

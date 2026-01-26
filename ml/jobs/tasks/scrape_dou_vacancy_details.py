@@ -9,7 +9,6 @@ Examples
 >>> # scrape_vacancy_details.delay(1)
 """
 
-
 import asyncio
 
 from ml.scrapers.schemas.vacancy import VacancySchema

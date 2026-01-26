@@ -56,7 +56,9 @@ class SearchQueryRepository(BaseRepository[SearchQueryModel]):
         if search_query is None:
             return None
         total_results = search_query.total_results
-        processed_results = await VacancyRepository(self._session).count_by_search_query_id(search_query_id=search_query_id)
+        processed_results = await VacancyRepository(self._session).count_by_search_query_id(
+            search_query_id=search_query_id
+        )
         if total_results is None:
             return None
         return round(min(processed_results / total_results, 1.0), 1)

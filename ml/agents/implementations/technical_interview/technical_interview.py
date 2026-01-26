@@ -3,10 +3,9 @@
 from typing import List
 
 import dspy
+from dspy.utils.asyncify import asyncify
 from langchain_core.messages import BaseMessage
-from ml.db.engine import connect_to_db
-from ml.db.repositories.vacancies import VacancyRepository
-from ml.agents.implementations.technical_interview.schemas import InterviewTurnRequestSchema, TechnicalInterviewResponseSchema
+from ml.agents.implementations.technical_interview.schemas import TechnicalInterviewResponseSchema
 
 
 class TechnicalInterviewSignature(dspy.Signature):
@@ -16,7 +15,9 @@ class TechnicalInterviewSignature(dspy.Signature):
     chat_history: List[BaseMessage] = dspy.InputField(desc="Conversation history between interviewer and candidate")
     query: str = dspy.InputField(desc="Latest user input")
 
-    response: TechnicalInterviewResponseSchema = dspy.OutputField(desc="Technical question or final technical summary. No soft skills.")
+    response: TechnicalInterviewResponseSchema = dspy.OutputField(
+        desc="Technical question or final technical summary. No soft skills."
+    )
 
 
 class TechnicalInterviewAgent(dspy.Module):
@@ -39,46 +40,23 @@ class TechnicalInterviewAgent(dspy.Module):
             query=query,
         )
 
+    async def aforward(self, *args, **kwargs) -> dspy.Prediction:
+        """
+        Async wrapper for the forward method.
 
-async def run_interview(request: InterviewTurnRequestSchema) -> TechnicalInterviewResponseSchema:
-    """Run a technical interview turn using stored vacancy descriptions.
+        This method wraps the synchronous forward method with asyncify
+        to allow asynchronous execution.
 
-    Parameters
-    ----------
-    request : InterviewTurnRequestSchema
-        Interview input data.
+        Parameters
+        ----------
+        *args
+            Positional arguments passed to forward.
+        **kwargs
+            Keyword arguments passed to forward.
 
-    Returns
-    -------
-    TechnicalInterviewResponseSchema
-        Interview response and completion flag.
-    """
-    descriptions = await _load_descriptions(request.search_query_id)
-    agent = TechnicalInterviewAgent()
-    response = agent(
-        vacancy_descriptions=descriptions,
-        chat_history=request.chat_history,
-        query=request.query,
-    ).response
-    return TechnicalInterviewResponseSchema(
-        interview_finished=response.interview_finished,
-        response=response.response,
-    )
-
-
-async def _load_descriptions(search_query_id: int) -> List[str]:
-    """Load vacancy descriptions for a search query.
-
-    Parameters
-    ----------
-    search_query_id : int
-        Search query identifier.
-
-    Returns
-    -------
-    List[str]
-        Collected vacancy descriptions.
-    """
-    async with connect_to_db() as session:
-        vacancy_repo = VacancyRepository(session)
-        return await vacancy_repo.list_descriptions(search_query_id)
+        Returns
+        -------
+        Any
+            The result of the forward method.
+        """
+        return await asyncify(self.__call__)(*args, **kwargs)

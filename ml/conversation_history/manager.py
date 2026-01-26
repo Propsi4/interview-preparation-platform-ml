@@ -9,7 +9,7 @@ from typing import List
 
 # Thirdparty imports
 from langchain_core.messages import BaseMessage, HumanMessage
-from loguru import logger
+from ml.core.logging import logger
 from sqlalchemy import select
 
 # Local folder imports
@@ -18,7 +18,7 @@ from ml.db.models.chat_session import ChatSessionModel
 from ml.db.models.chat_message import ChatMessageModel
 from ml.db.repositories.chat_messages import ChatMessageRepository
 from ml.db.repositories.chat_sessions import ChatSessionRepository
-from .utils import dicts_to_langchain_messages
+from .utils import dicts_to_langchain_messages, langchain_to_dict
 from .schemas import ChatSessionOverviewSchema, ChatMessageSchema
 
 
@@ -225,6 +225,45 @@ class ConversationHistoryManager:
             logger.error(f"Error incrementing chat session price for {session_id}: {e}")
             raise
 
+    async def set_interview_finished(self, session_id: str, interview_finished: bool) -> None:
+        """
+        Update the interview_finished flag for a chat session.
+
+        Parameters
+        ----------
+        session_id : str
+            The chat session ID to update.
+        interview_finished : bool
+            Whether the interview has finished.
+
+        Returns
+        -------
+        None
+            This function commits the interview_finished state update.
+        """
+        try:
+            async with connect_to_db() as session:
+                try:
+                    session_repo = ChatSessionRepository(session)
+                    chat_session = await session_repo.get_by_session_id(session_id)
+                    if chat_session is None:
+                        chat_session = ChatSessionModel(
+                            session_id=session_id,
+                            price=0.0,
+                            interview_finished=interview_finished,
+                        )
+                        await session_repo.add(chat_session)
+                        await session_repo.flush()
+                    else:
+                        chat_session.interview_finished = interview_finished
+                    await session_repo.commit()
+                except Exception:
+                    await session.rollback()
+                    raise
+        except Exception as e:
+            logger.error(f"Error setting interview_finished for chat session {session_id}: {e}")
+            raise
+
     async def save_messages(self, session_id: str, messages: List[BaseMessage]) -> None:
         """
         Save a list of LangChain messages for a chat session.
@@ -262,14 +301,16 @@ class ConversationHistoryManager:
                         )
                         await session_repo.add(chat_session)
 
-                    chat_messages = [
-                        ChatMessageModel(
-                            session_id=session_id,
-                            role=msg.role,
-                            content=msg.content,
+                    chat_messages: List[ChatMessageModel] = []
+                    for msg in messages:
+                        msg_dict = langchain_to_dict(msg)
+                        chat_messages.append(
+                            ChatMessageModel(
+                                session_id=session_id,
+                                role=msg_dict["role"],
+                                content=msg_dict["content"],
+                            )
                         )
-                        for msg in messages
-                    ]
                     await message_repo.add_all(chat_messages)
 
                     await session_repo.commit()

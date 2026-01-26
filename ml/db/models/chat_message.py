@@ -18,7 +18,9 @@ class ChatMessageModel(TimestampedBase):
 
     __tablename__ = "chat_messages"
 
-    session_id: Mapped[str] = mapped_column(String(100), ForeignKey("chat_sessions.session_id", ondelete="CASCADE"), nullable=False)
+    session_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("chat_sessions.session_id", ondelete="CASCADE"), nullable=False
+    )
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
 

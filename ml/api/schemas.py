@@ -1,8 +1,7 @@
 """API request and response schemas."""
 
-
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Literal
+from typing import Literal, Optional
 
 
 class ScrapeVacanciesRequestSchema(BaseModel):
@@ -17,6 +16,48 @@ class ScrapeVacanciesRequestSchema(BaseModel):
     search_query: str = Field(min_length=1, description="Search query string")
 
     model_config = ConfigDict(extra="forbid", json_schema_extra={"example": {"search_query": "Data Scientist"}})
+
+
+class ConfigableLLMRequestSchema(BaseModel):
+    """Request body for configuring an LLM."""
+
+    llm_model: str = Field(..., description="LLM model to use for the interview")
+    llm_temperature: float = Field(..., description="LLM temperature to use for the interview")
+    additional_llm_kwargs: dict = Field(..., description="Additional LLM kwargs to use for the interview")
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "llm_model": "openai/gpt-4.1-mini",
+                "llm_temperature": 0.0,
+                "additional_llm_kwargs": {"max_tokens": 32000},
+            }
+        },
+    )
+
+
+class TechnicalInterviewChatRequestSchema(BaseModel):
+    """Request body for running a technical interview turn."""
+
+    search_query_id: int = Field(..., description="Search query identifier")
+    query: str = Field(..., description="Latest user input")
+    llm_config_override: Optional[ConfigableLLMRequestSchema] = Field(default=None, description="LLM configuration")
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "search_query_id": 1,
+                "query": "Interview me on the topic of data science",
+                "llm_config_override": {
+                    "llm_model": "openai/gpt-4.1-mini",
+                    "llm_temperature": 0.0,
+                    "additional_llm_kwargs": {"max_tokens": 32000},
+                },
+            }
+        },
+    )
 
 
 class ScrapeVacanciesResponseSchema(BaseModel):
@@ -51,7 +92,12 @@ class ProgressResponseSchema(BaseModel):
     total_results: int | None = Field(default=None, description="Total results from source")
     processed_results: int = Field(..., ge=0, description="Processed vacancies count")
 
-    model_config = ConfigDict(extra="forbid", json_schema_extra={"example": {"search_query_id": 1, "progress": 0.5, "total_results": 100, "processed_results": 50}})
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {"search_query_id": 1, "progress": 0.5, "total_results": 100, "processed_results": 50}
+        },
+    )
 
 
 class StatusResponseSchema(BaseModel):

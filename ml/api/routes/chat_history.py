@@ -5,7 +5,7 @@ from typing import List
 
 # Thirdparty imports
 from fastapi import APIRouter, HTTPException
-from loguru import logger
+from ml.core.logging import logger
 
 # Local imports
 from ml.api.schemas import StatusResponseSchema
