@@ -84,6 +84,7 @@ def _load_history_if_needed(target_session_id: str) -> None:
         messages = history.get("messages", [])
         messages.sort(key=lambda item: item.get("id", 0))
         set_messages([{"role": msg.get("role"), "content": msg.get("content")} for msg in messages])
+        set_search_query_id(history.get("search_query_id"))
         set_interview_finished(bool(history.get("interview_finished", False)))
         st.session_state.last_loaded_session = target_session_id
         st.session_state.evaluation_results = None
@@ -147,6 +148,33 @@ search_queries = get_search_queries()
 selector_options = [entry["id"] for entry in search_queries]
 
 
+def _is_existing_session(target_session_id: str) -> bool:
+    """
+    Check if the session exists on the ML side.
+
+    Parameters
+    ----------
+    target_session_id : str
+        Chat session identifier.
+
+    Returns
+    -------
+    bool
+        True if session exists in the backend.
+    """
+    try:
+        sessions = _run_async(client.list_sessions())
+        return any(
+            session.get("session_id") == target_session_id and session.get("search_query_id") is not None
+            for session in sessions
+        )
+    except Exception:
+        return False
+
+
+lock_search_query_selector = _is_existing_session(session_id)
+
+
 def _format_search_query(option: int | str) -> str:
     entry = next((item for item in search_queries if item["id"] == option), None)
     if entry:
@@ -164,6 +192,7 @@ selected_option = st.selectbox(
     index=selected_index,
     format_func=_format_search_query,
     help="Select a search query to chat and evaluate.",
+    disabled=lock_search_query_selector,
 )
 
 if selected_option:

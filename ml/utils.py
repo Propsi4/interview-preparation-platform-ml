@@ -44,6 +44,7 @@ def extract_request_cost(lm: dspy.LM, start_index: int) -> float:
 
 async def persist_chat_and_cost(
     session_id: str,
+    search_query_id: int,
     user_message: str,
     response_text: str,
     request_cost: float,
@@ -56,6 +57,8 @@ async def persist_chat_and_cost(
     ----------
     session_id : str
         The chat session identifier.
+    search_query_id : int
+        Search query identifier associated with the session.
     user_message : str
         Raw user message content.
     response_text : str
@@ -72,6 +75,7 @@ async def persist_chat_and_cost(
     """
     await history_manager.save_messages(
         session_id=session_id,
+        search_query_id=search_query_id,
         messages=[
             HumanMessage(content=user_message),
             AIMessage(content=response_text),

@@ -177,6 +177,7 @@ async def run_technical_interview(
         user_message=payload.query,
         response_text=response.response,
         request_cost=request_cost,
+        search_query_id=payload.search_query_id,
         interview_finished=response.interview_finished,
     )
 
@@ -272,6 +273,7 @@ def stream_technical_interview(
                             user_message=payload.query,
                             response_text=response_text,
                             request_cost=request_cost,
+                            search_query_id=payload.search_query_id,
                             interview_finished=response_schema.interview_finished,
                         )
         except Exception as e:

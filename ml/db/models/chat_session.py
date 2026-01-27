@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Float, String, Text
+from sqlalchemy import Boolean, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ml.db.models.base import TimestampedBase
@@ -17,6 +17,7 @@ class ChatSessionModel(TimestampedBase):
     __tablename__ = "chat_sessions"
 
     session_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    search_query_id: Mapped[int] = mapped_column(ForeignKey("search_queries.id"), nullable=False)
     title: Mapped[str | None] = mapped_column(Text, nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     interview_finished: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

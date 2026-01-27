@@ -10,6 +10,7 @@ class ChatSessionOverviewSchema(BaseModel):
     """Chat sessions overview schema."""
 
     session_id: str = Field(..., description="Session ID")
+    search_query_id: int = Field(..., description="Search query identifier")
     title: str = Field(..., description="Session title")
     created_at: datetime = Field(..., description="Session creation timestamp")
     updated_at: datetime = Field(..., description="Session last update timestamp")

@@ -147,6 +147,7 @@ class ConversationHistoryManager:
                             total_messages=total_messages,
                             price=chat_session.price,
                             interview_finished=chat_session.interview_finished,
+                            search_query_id=chat_session.search_query_id,
                         )
                     )
 
@@ -265,7 +266,12 @@ class ConversationHistoryManager:
             logger.error(f"Error setting interview_finished for chat session {session_id}: {e}")
             raise
 
-    async def save_messages(self, session_id: str, messages: List[BaseMessage]) -> None:
+    async def save_messages(
+        self,
+        session_id: str,
+        search_query_id: int,
+        messages: List[BaseMessage],
+    ) -> None:
         """
         Save a list of LangChain messages for a chat session.
 
@@ -273,6 +279,8 @@ class ConversationHistoryManager:
         ----------
         session_id : str
             The chat session ID to save messages for.
+        search_query_id : int
+            Search query identifier to bind to the session.
         messages : List[BaseMessage]
             List of LangChain message objects to save.
 
@@ -298,6 +306,7 @@ class ConversationHistoryManager:
                         title = first_user_msg.content[:100] if first_user_msg else None
                         chat_session = ChatSessionModel(
                             session_id=session_id,
+                            search_query_id=search_query_id,
                             title=title,
                         )
                         await session_repo.add(chat_session)
