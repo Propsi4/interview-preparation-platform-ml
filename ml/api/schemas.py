@@ -60,6 +60,24 @@ class TechnicalInterviewChatRequestSchema(BaseModel):
     )
 
 
+class EvaluationDispatchRequestSchema(BaseModel):
+    """Request body for dispatching vacancy interview assessments."""
+
+    chat_session_id: str = Field(..., description="Chat session identifier")
+    search_query_id: int = Field(..., description="Search query identifier")
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"example": {"chat_session_id": "session_123", "search_query_id": 1}},
+    )
+
+
+class EvaluationDispatchResponseSchema(BaseModel):
+    """Response body for dispatching vacancy interview assessments."""
+
+    dispatched_tasks: int = Field(..., ge=0, description="Number of tasks dispatched")
+
+
 class ScrapeVacanciesResponseSchema(BaseModel):
     """Response body for scraping request.
 

@@ -5,6 +5,7 @@ from .search_query import SearchQueryModel
 from .vacancies import VacancyModel
 from .chat_session import ChatSessionModel
 from .chat_message import ChatMessageModel
+from .vacancy_interview_score import VacancyInterviewScoreModel
 
 metadata = Base.metadata
 
@@ -16,4 +17,5 @@ __all__ = [
     "VacancyModel",
     "ChatSessionModel",
     "ChatMessageModel",
+    "VacancyInterviewScoreModel",
 ]

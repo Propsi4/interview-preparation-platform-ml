@@ -7,6 +7,7 @@ import uvicorn
 
 from ml.api.routes.chat_history import router as chat_history_router
 from ml.api.routes.chat import router as chat_router
+from ml.api.routes.evaluation import router as evaluation_router
 from ml.api.routes.scrapers import router as scrapers_router
 from ml.api.schemas import StatusResponseSchema
 from ml.config.api import api_config
@@ -56,6 +57,7 @@ async def health(request: Request) -> StatusResponseSchema:
 app.include_router(scrapers_router, tags=["Scrapers"])
 app.include_router(chat_history_router, tags=["Chat History"])
 app.include_router(chat_router, tags=["Chat"])
+app.include_router(evaluation_router, tags=["Evaluation"])
 
 
 if __name__ == "__main__":
