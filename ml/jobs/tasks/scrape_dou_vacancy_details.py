@@ -11,7 +11,7 @@ Examples
 
 import asyncio
 
-from ml.agents.implementations.tech_requirements_extractor.extractor import extract_technical_requirements
+from ml.jobs.pipelines.tech_reqs_extractor import extract_technical_requirements
 from ml.scrapers.schemas.vacancy import VacancySchema
 from ml.db.engine import connect_to_db
 from ml.db.repositories.vacancies import VacancyRepository
