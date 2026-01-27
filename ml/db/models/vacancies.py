@@ -16,5 +16,6 @@ class VacancyModel(TimestampedBase):
     company: Mapped[str | None] = mapped_column(Text, nullable=True)
     location: Mapped[str | None] = mapped_column(Text, nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    processed_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     url: Mapped[str] = mapped_column(Text, nullable=False)
     scrapped: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

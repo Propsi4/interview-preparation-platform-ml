@@ -59,6 +59,8 @@ async def _load_vacancy_descriptions(search_query_id: int) -> list[str]:
     """
     Load vacancy descriptions for a search query.
 
+    Uses processed technical requirements when available.
+
     Parameters
     ----------
     search_query_id : int
@@ -71,7 +73,7 @@ async def _load_vacancy_descriptions(search_query_id: int) -> list[str]:
     """
     async with connect_to_db() as session:
         vacancy_repo = VacancyRepository(session)
-        return await vacancy_repo.list_descriptions(search_query_id)
+        return await vacancy_repo.list_processed_descriptions(search_query_id)
 
 
 async def _build_request_payload(

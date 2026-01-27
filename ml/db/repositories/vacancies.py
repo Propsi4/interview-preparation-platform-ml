@@ -65,6 +65,8 @@ class VacancyRepository(BaseRepository[VacancyModel]):
         """
         List non-empty vacancy descriptions for a search query.
 
+        Returns raw descriptions even if processed content exists.
+
         Parameters
         ----------
         search_query_id : int
@@ -77,6 +79,30 @@ class VacancyRepository(BaseRepository[VacancyModel]):
         """
         vacancies = await self.list_by_search_query_id(search_query_id)
         return [vacancy.description for vacancy in vacancies if vacancy.description is not None]
+
+    async def list_processed_descriptions(self, search_query_id: int) -> list[str]:
+        """
+        List processed vacancy descriptions for a search query.
+
+        Falls back to raw descriptions when processed text is missing.
+
+        Parameters
+        ----------
+        search_query_id : int
+            Search query identifier.
+
+        Returns
+        -------
+        list[str]
+            Processed vacancy descriptions.
+        """
+        vacancies = await self.list_by_search_query_id(search_query_id)
+        descriptions: list[str] = []
+        for vacancy in vacancies:
+            candidate = vacancy.processed_description or vacancy.description
+            if candidate:
+                descriptions.append(candidate)
+        return descriptions
 
     async def update_details(self, vacancy: VacancyModel, updates: Mapping[str, Any]) -> VacancyModel:
         """

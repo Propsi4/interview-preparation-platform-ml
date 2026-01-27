@@ -11,6 +11,7 @@ Examples
 
 import asyncio
 
+from ml.agents.implementations.tech_requirements_extractor.extractor import extract_technical_requirements
 from ml.scrapers.schemas.vacancy import VacancySchema
 from ml.db.engine import connect_to_db
 from ml.db.repositories.vacancies import VacancyRepository
@@ -48,6 +49,7 @@ def scrape_vacancy_details(
             vacancy_repo = VacancyRepository(session)
             vacancy = await vacancy_repo.get(vacancy_id)
             scraped = await scraper.scrape_vacancy(vacancy.url)
+            processed_description = extract_technical_requirements(scraped.description or "")
 
             # Update vacancy with the scraped data
             await vacancy_repo.update_details(
@@ -57,6 +59,7 @@ def scrape_vacancy_details(
                     "company": scraped.company,
                     "location": scraped.location,
                     "description": scraped.description,
+                    "processed_description": processed_description or None,
                     "url": scraped.url,
                     "scrapped": True,
                 },
