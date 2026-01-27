@@ -272,8 +272,8 @@ def stream_technical_interview(
                             request_cost=request_cost,
                             interview_finished=response_schema.interview_finished,
                         )
-        except Exception as exc:
-            logger.error(f"Error running technical interview stream for session {session_id}: {exc}", exc_info=True)
+        except Exception as e:
+            logger.error(f"Error running technical interview stream for session {session_id}: {e}")
             error_event = {
                 "type": "error",
                 "status": "error",

@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from ml.agents.implementations.technical_interview import TechnicalInterviewResponseSchema
 from ml.api.schemas import TechnicalInterviewChatRequestSchema
 from ml.jobs.pipelines.chat import run_technical_interview, stream_technical_interview
-
+from ml.core.logging import logger
 router = APIRouter()
 
 
@@ -30,6 +30,7 @@ async def chat_with_technical_interview_agent(
     try:
         return await run_technical_interview(session_id=session_id, payload=payload)
     except Exception as e:
+        logger.error(f"Failed to run technical interview: {e}")
         raise HTTPException(status_code=500, detail="Failed to run technical interview") from e
 
 
@@ -53,4 +54,8 @@ async def chat_with_technical_interview_agent_stream(
     StreamingResponse
         SSE stream with token events and final TechnicalInterviewResponseSchema payload.
     """
-    return stream_technical_interview(session_id=session_id, payload=payload)
+    try:
+        return stream_technical_interview(session_id=session_id, payload=payload)
+    except Exception as e:
+        logger.error(f"Failed to stream technical interview: {e}")
+        raise HTTPException(status_code=500, detail="Failed to stream technical interview") from e
