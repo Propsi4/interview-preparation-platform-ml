@@ -10,7 +10,10 @@ from ml.core.logging import logger
 # Local imports
 from ml.api.schemas import StatusResponseSchema
 from ml.conversation_history.manager import ConversationHistoryManager
-from ml.conversation_history.schemas import ChatSessionOverviewSchema, ChatSessionDetailsSchema
+from ml.conversation_history.schemas import ChatMessageSchema, ChatSessionOverviewSchema, ChatSessionDetailsSchema
+from ml.db.engine import connect_to_db
+from ml.db.repositories.chat_messages import ChatMessageRepository
+from ml.db.repositories.chat_sessions import ChatSessionRepository
 
 router = APIRouter()
 
@@ -36,15 +39,31 @@ async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema:
         logger.info(f"Getting messages for session: {session_id}")
 
         # Get messages with IDs directly from the manager
-        messages_dicts = await history_manager.get_session_history_with_ids(session_id, filter_tool_calls=True)
-        session_price = await history_manager.get_session_price(session_id)
+        async with connect_to_db() as session:
+            session_repo = ChatSessionRepository(session)
+            session_model = await session_repo.get_by_session_id(session_id)
+            messages_repo = ChatMessageRepository(session)
+            messages = await messages_repo.list_by_session_id(session_id)
+            if session_model is None:
+                raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
 
-        return ChatSessionDetailsSchema(
-            session_id=session_id,
-            messages=messages_dicts,
-            total_messages=len(messages_dicts),
-            price=session_price,
-        )
+            return ChatSessionDetailsSchema(
+                session_id=session_id,
+                title=session_model.title,
+                created_at=session_model.created_at,
+                updated_at=session_model.updated_at,
+                total_messages=len(messages),
+                price=session_model.price,
+                messages=[
+                    ChatMessageSchema(
+                        id=msg.id,
+                        role=msg.role,
+                        content=msg.content,
+                        created_at=msg.created_at,
+                    )
+                    for msg in messages
+                ],
+            )
 
     except Exception as e:
         logger.error(f"Error getting messages for session {session_id}: {e}", exc_info=True)
