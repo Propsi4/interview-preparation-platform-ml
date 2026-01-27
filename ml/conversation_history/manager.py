@@ -146,6 +146,7 @@ class ConversationHistoryManager:
                             updated_at=chat_session.updated_at,
                             total_messages=total_messages,
                             price=chat_session.price,
+                            interview_finished=chat_session.interview_finished,
                         )
                     )
 

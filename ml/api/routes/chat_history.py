@@ -54,6 +54,7 @@ async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema:
                 updated_at=session_model.updated_at,
                 total_messages=len(messages),
                 price=session_model.price,
+                interview_finished=session_model.interview_finished,
                 messages=[
                     ChatMessageSchema(
                         id=msg.id,
