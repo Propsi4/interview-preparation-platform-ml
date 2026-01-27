@@ -45,7 +45,7 @@ class VacancyRepository(BaseRepository[VacancyModel]):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def count_by_search_query_id(self, search_query_id: int) -> int:
+    async def count_by_search_query_id(self, search_query_id: int, **filters: Any) -> int:
         """
         Count vacancies for a search query.
 
@@ -59,7 +59,7 @@ class VacancyRepository(BaseRepository[VacancyModel]):
         int
             Vacancy count.
         """
-        return await self.count_by(search_query_id=search_query_id)
+        return await self.count_by(search_query_id=search_query_id, **filters)
 
     async def list_descriptions(self, search_query_id: int) -> list[str]:
         """

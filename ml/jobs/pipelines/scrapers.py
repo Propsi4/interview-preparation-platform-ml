@@ -57,7 +57,7 @@ async def get_scrape_progress(search_query_id: int) -> ProgressResponseSchema:
         if search_query is None:
             raise ValueError("Search query not found")
 
-        processed_results = await vacancy_repo.count_by_search_query_id(search_query_id)
+        processed_results = await vacancy_repo.count_by_search_query_id(search_query_id, scrapped=True)
         total_results = search_query.total_results
         progress_value = 0.0
         if total_results and total_results > 0:

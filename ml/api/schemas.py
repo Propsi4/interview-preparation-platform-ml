@@ -160,7 +160,7 @@ class ProgressResponseSchema(BaseModel):
     """
 
     search_query_id: int = Field(..., description="Search query identifier")
-    progress: float = Field(..., ge=0.0, le=1.0, decimal_places=1, description="Completion ratio")
+    progress: float = Field(..., ge=0.0, le=1.0, description="Completion ratio")
     total_results: int | None = Field(default=None, description="Total results from source")
     processed_results: int = Field(..., ge=0, description="Processed vacancies count")
 
