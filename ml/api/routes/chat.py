@@ -12,7 +12,7 @@ from ml.jobs.pipelines.chat import run_technical_interview, stream_technical_int
 router = APIRouter()
 
 
-@router.post("/chat/{session_id}", response_model=TechnicalInterviewResponseSchema)
+@router.post("/interview/{session_id}", response_model=TechnicalInterviewResponseSchema)
 async def chat_with_technical_interview_agent(
     session_id: str,
     payload: TechnicalInterviewChatRequestSchema,
@@ -33,7 +33,7 @@ async def chat_with_technical_interview_agent(
         raise HTTPException(status_code=500, detail="Failed to run technical interview") from e
 
 
-@router.post("/chat/{session_id}/stream")
+@router.post("/interview/{session_id}/stream")
 async def chat_with_technical_interview_agent_stream(
     session_id: str,
     payload: TechnicalInterviewChatRequestSchema,

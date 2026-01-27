@@ -7,7 +7,7 @@ from ml.jobs.pipelines.scrapers import enqueue_vacancy_scrape, get_scrape_progre
 router = APIRouter()
 
 
-@router.post("/scrape_vacancies", response_model=ScrapeVacanciesResponseSchema, status_code=202)
+@router.post("/scrape", response_model=ScrapeVacanciesResponseSchema, status_code=202)
 async def scrape_vacancies(payload: ScrapeVacanciesRequestSchema) -> ScrapeVacanciesResponseSchema:
     """
     Enqueue a vacancies scraping job.

@@ -17,7 +17,7 @@ router = APIRouter()
 history_manager = ConversationHistoryManager()
 
 
-@router.get("/details/{session_id}")
+@router.get("/session/{session_id}")
 async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema:
     """
     Get all messages for a specific chat session.
@@ -51,7 +51,7 @@ async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve messages: {str(e)}")
 
 
-@router.get("/list", response_model=List[ChatSessionOverviewSchema])
+@router.get("/sessions", response_model=List[ChatSessionOverviewSchema])
 async def list_chat_sessions() -> List[ChatSessionOverviewSchema]:
     """
     List all chat sessions with basic information.
@@ -69,7 +69,7 @@ async def list_chat_sessions() -> List[ChatSessionOverviewSchema]:
         raise HTTPException(status_code=500, detail=f"Failed to list chat sessions: {str(e)}")
 
 
-@router.patch("/{session_id}/title")
+@router.patch("/session/{session_id}/title")
 async def rename_chat_session(session_id: str, new_title: str) -> StatusResponseSchema:
     """
     Rename a chat session by its ID.
@@ -101,7 +101,7 @@ async def rename_chat_session(session_id: str, new_title: str) -> StatusResponse
         return StatusResponseSchema(status="error", message=f"Failed to rename session {session_id}: {str(e)}")
 
 
-@router.get("/price/{session_id}")
+@router.get("/session/{session_id}/price")
 async def get_session_price(session_id: str) -> float:
     """
     Get the total price accumulated for a session.
@@ -124,7 +124,7 @@ async def get_session_price(session_id: str) -> float:
         return 0.0
 
 
-@router.delete("/{session_id}")
+@router.delete("/session/{session_id}")
 async def delete_session_history(session_id: str) -> StatusResponseSchema:
     """
     Delete all messages for a specific session.

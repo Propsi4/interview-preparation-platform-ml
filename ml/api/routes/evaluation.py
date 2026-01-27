@@ -8,7 +8,7 @@ from ml.jobs.pipelines.evaluation import dispatch_vacancy_assessments
 router = APIRouter()
 
 
-@router.post("/evaluation/dispatch", response_model=EvaluationDispatchResponseSchema, status_code=202)
+@router.post("/evaluate", response_model=EvaluationDispatchResponseSchema, status_code=202)
 async def dispatch_evaluation(payload: EvaluationDispatchRequestSchema) -> EvaluationDispatchResponseSchema:
     """
     Dispatch vacancy interview assessment tasks for a session.

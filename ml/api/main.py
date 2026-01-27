@@ -54,10 +54,10 @@ async def health(request: Request) -> StatusResponseSchema:
         return StatusResponseSchema(status="error", message="Service is not healthy")
 
 
-app.include_router(scrapers_router, tags=["Scrapers"])
-app.include_router(chat_history_router, tags=["Chat History"])
-app.include_router(chat_router, tags=["Chat"])
-app.include_router(evaluation_router, tags=["Evaluation"])
+app.include_router(scrapers_router, prefix="/scrapers", tags=["Scrapers"])
+app.include_router(chat_history_router, prefix="/conversation_history", tags=["Conversation History"])
+app.include_router(chat_router, prefix="/chat", tags=["Chat"])
+app.include_router(evaluation_router, prefix="/evaluation", tags=["Evaluation"])
 
 
 if __name__ == "__main__":
