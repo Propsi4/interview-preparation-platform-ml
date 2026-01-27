@@ -2,7 +2,7 @@
 
 import json
 import time
-from typing import Any, AsyncGenerator
+from typing import AsyncGenerator
 
 import dspy
 from fastapi.responses import StreamingResponse
@@ -103,30 +103,6 @@ async def _build_request_payload(
     )
 
 
-def _to_response_schema(response_obj: Any) -> TechnicalInterviewResponseSchema:
-    """
-    Normalize agent response into the API response schema.
-
-    Parameters
-    ----------
-    response_obj : Any
-        Raw response from the agent prediction.
-
-    Returns
-    -------
-    TechnicalInterviewResponseSchema
-        Normalized response schema.
-    """
-    if isinstance(response_obj, TechnicalInterviewResponseSchema):
-        return response_obj
-    if isinstance(response_obj, dict):
-        return TechnicalInterviewResponseSchema(**response_obj)
-    return TechnicalInterviewResponseSchema(
-        interview_finished=False,
-        response="" if response_obj is None else str(response_obj),
-    )
-
-
 async def run_technical_interview(
     session_id: str,
     payload: TechnicalInterviewChatRequestSchema,
@@ -170,7 +146,10 @@ async def run_technical_interview(
     total_time = time.time() - start_time
     logger.debug(f"Technical interview response time: {total_time:.4f}s")
 
-    response = _to_response_schema(getattr(prediction, "response", None))
+    response = TechnicalInterviewResponseSchema(
+        interview_finished=getattr(prediction, "interview_finished", False),
+        response=getattr(prediction, "response", ""),
+    )
 
     await persist_chat_and_cost(
         session_id=session_id,
@@ -251,15 +230,16 @@ def stream_technical_interview(
                             event["type"] = "answer"
                         yield f"data: {json.dumps(event)}\n\n"
                     elif isinstance(chunk, dspy.Prediction):
-                        response_schema = _to_response_schema(getattr(chunk, "response", None))
-                        response_payload = response_schema.model_dump()
-                        response_text = response_schema.response
+                        response_schema = TechnicalInterviewResponseSchema(
+                            interview_finished=getattr(chunk, "interview_finished", False),
+                            response=getattr(chunk, "response", ""),
+                        )
 
                         complete_event = {
                             "type": "complete",
                             "status": "success",
                             "session_id": session_id,
-                            "data": response_payload,
+                            "data": response_schema.model_dump(),
                         }
                         yield f"data: {json.dumps(complete_event)}\n\n"
                         total_time = time.time() - start_time
@@ -271,7 +251,7 @@ def stream_technical_interview(
                         await persist_chat_and_cost(
                             session_id=session_id,
                             user_message=payload.query,
-                            response_text=response_text,
+                            response_text=response_schema.response,
                             request_cost=request_cost,
                             search_query_id=payload.search_query_id,
                             interview_finished=response_schema.interview_finished,

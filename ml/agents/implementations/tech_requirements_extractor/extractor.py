@@ -4,9 +4,6 @@
 import dspy
 from dspy.utils.asyncify import asyncify
 
-# Local imports
-from ml.config.openai import openai_config
-
 
 class TechnicalRequirementsSignature(dspy.Signature):
     """Extract technical requirements from a vacancy description."""

@@ -227,6 +227,10 @@ can_chat = get_search_query_id() is not None
 if not can_chat:
     st.info("Set a search_query_id to start chatting.")
 
+if st.session_state.get("clear_chat_input", False):
+    st.session_state["chat_input"] = ""
+    st.session_state["clear_chat_input"] = False
+
 user_input = st.text_area("Your message", height=120, key="chat_input")
 send_clicked = st.button("Send", type="primary", disabled=not can_chat)
 
@@ -288,6 +292,7 @@ if send_clicked and user_input.strip():
             loop.close()
             add_message("assistant", result["response"])
             set_interview_finished(result["interview_finished"])
+            st.session_state["clear_chat_input"] = True
             st.rerun()
         except Exception as exc:
             st.error(f"Failed to stream response: {exc}")

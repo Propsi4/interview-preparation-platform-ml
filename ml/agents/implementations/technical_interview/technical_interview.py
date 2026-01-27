@@ -5,7 +5,6 @@ from typing import List
 import dspy
 from dspy.utils.asyncify import asyncify
 from langchain_core.messages import BaseMessage
-from ml.agents.implementations.technical_interview.schemas import TechnicalInterviewResponseSchema
 
 
 class TechnicalInterviewSignature(dspy.Signature):
@@ -15,9 +14,8 @@ class TechnicalInterviewSignature(dspy.Signature):
     chat_history: List[BaseMessage] = dspy.InputField(desc="Conversation history between interviewer and candidate")
     query: str = dspy.InputField(desc="Latest user input")
 
-    response: TechnicalInterviewResponseSchema = dspy.OutputField(
-        desc="Technical question or final technical summary. No soft skills."
-    )
+    interview_finished: bool = dspy.OutputField(desc="Whether the interview is complete")
+    response: str = dspy.OutputField(desc="Technical question or final technical summary. No soft skills.")
 
 
 class TechnicalInterviewAgent(dspy.Module):
