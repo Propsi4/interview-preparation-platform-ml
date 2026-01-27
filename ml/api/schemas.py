@@ -1,7 +1,9 @@
 """API request and response schemas."""
 
-from pydantic import BaseModel, Field, ConfigDict
+from datetime import datetime
 from typing import Literal, Optional
+
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ScrapeVacanciesRequestSchema(BaseModel):
@@ -76,6 +78,35 @@ class EvaluationDispatchResponseSchema(BaseModel):
     """Response body for dispatching vacancy interview assessments."""
 
     dispatched_tasks: int = Field(..., ge=0, description="Number of tasks dispatched")
+
+
+class VacancyInterviewScoreResponseSchema(BaseModel):
+    """Response body for vacancy interview evaluation results."""
+
+    id: int = Field(..., description="Score record identifier")
+    search_query_id: int = Field(..., description="Search query identifier")
+    chat_session_id: str = Field(..., description="Chat session identifier")
+    score: float = Field(..., ge=0.0, le=1.0, description="Normalized assessment score")
+    strong_sides: Optional[str] = Field(default=None, description="Highlighted strong sides of the interview")
+    weak_sides: Optional[str] = Field(default=None, description="Highlighted weak sides of the interview")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "search_query_id": 42,
+                "chat_session_id": "session_123",
+                "score": 0.7,
+                "strong_sides": "Clear communication and relevant examples.",
+                "weak_sides": "Needs deeper system design explanations.",
+                "created_at": "2025-01-01T10:00:00Z",
+                "updated_at": "2025-01-01T10:00:00Z",
+            }
+        },
+    )
 
 
 class ScrapeVacanciesResponseSchema(BaseModel):
