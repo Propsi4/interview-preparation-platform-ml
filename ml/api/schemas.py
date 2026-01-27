@@ -121,6 +121,29 @@ class ScrapeVacanciesResponseSchema(BaseModel):
     search_query_id: int = Field(..., description="Search query identifier")
 
 
+class SearchQueryResponseSchema(BaseModel):
+    """Response body for search query listings."""
+
+    id: int = Field(..., description="Search query identifier")
+    query: str = Field(..., description="Search query text")
+    total_results: int | None = Field(default=None, description="Total results reported by the source")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "query": "Data Scientist",
+                "total_results": 120,
+                "created_at": "2025-01-01T10:00:00Z",
+                "updated_at": "2025-01-01T10:00:00Z",
+            }
+        },
+    )
+
+
 class ProgressResponseSchema(BaseModel):
     """Response body for search progress.
 
