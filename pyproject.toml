@@ -48,6 +48,7 @@ streamlit = "^1.53.1"
 httpx = "^0.28.1"
 elevenlabs = "^2.32.0"
 python-multipart = "^0.0.22"
+websockets = "^16.0"
 
 
 [tool.poetry.group.dev.dependencies]

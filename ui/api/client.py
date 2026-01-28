@@ -1,11 +1,14 @@
 """API Client for communicating with the ML service."""
 
 # Standart library imports
+import base64
 import json
 from typing import Any, AsyncGenerator, Dict, List, Optional
+from urllib.parse import urlparse, urlunparse
 
 # Thirdparty imports
 import httpx
+import websockets
 
 # Local imports
 from ui.config.settings import settings
@@ -218,6 +221,164 @@ class InterviewAPIClient:
                         continue
                     if isinstance(event, dict):
                         yield event
+
+    async def speech_stream(
+        self,
+        session_id: str,
+        search_query_id: int,
+        audio_bytes: bytes,
+        tts_enabled: bool = True,
+        audio_format: Optional[str] = None,
+        audio_file_name: str = "speech_input.wav",
+        language_code: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Stream speech input and return transcript, response, and audio bytes.
+
+        Parameters
+        ----------
+        session_id : str
+            Chat session identifier.
+        search_query_id : int
+            Search query identifier.
+        audio_bytes : bytes
+            Recorded audio payload.
+        tts_enabled : bool
+            Whether to request TTS audio output.
+        audio_format : Optional[str]
+            Optional format hint for STT (e.g., 'pcm_s16le_16').
+        audio_file_name : str
+            File name hint for STT.
+        language_code : Optional[str]
+            Optional ISO-639 language code for STT.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Transcript, response text, and synthesized audio bytes.
+        """
+        transcript: Optional[str] = None
+        response_text = ""
+        interview_finished = False
+        audio_chunks: list[bytes] = []
+
+        async for payload in self.speech_stream_events(
+            session_id=session_id,
+            search_query_id=search_query_id,
+            audio_bytes=audio_bytes,
+            tts_enabled=tts_enabled,
+            audio_format=audio_format,
+            audio_file_name=audio_file_name,
+            language_code=language_code,
+        ):
+            event_type = payload.get("type")
+            data = payload.get("data", {})
+
+            if event_type == "transcript":
+                transcript = data.get("text")
+            elif event_type == "answer":
+                response_text += data.get("token", "")
+            elif event_type == "complete":
+                response_text = data.get("response", response_text)
+                interview_finished = bool(data.get("interview_finished", False))
+            elif event_type == "audio_chunk":
+                chunk = data.get("chunk")
+                if chunk:
+                    audio_chunks.append(base64.b64decode(chunk))
+
+        return {
+            "transcript": transcript,
+            "response": response_text,
+            "audio_bytes": b"".join(audio_chunks) if audio_chunks else None,
+            "interview_finished": interview_finished,
+        }
+
+    async def speech_stream_events(
+        self,
+        session_id: str,
+        search_query_id: int,
+        audio_bytes: bytes,
+        tts_enabled: bool = True,
+        audio_format: Optional[str] = None,
+        audio_file_name: str = "speech_input.wav",
+        language_code: Optional[str] = None,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        Stream speech events from the WebSocket endpoint.
+
+        Parameters
+        ----------
+        session_id : str
+            Chat session identifier.
+        search_query_id : int
+            Search query identifier.
+        audio_bytes : bytes
+            Recorded audio payload.
+        tts_enabled : bool
+            Whether to request TTS audio output.
+        audio_format : Optional[str]
+            Optional format hint for STT (e.g., 'pcm_s16le_16').
+        audio_file_name : str
+            File name hint for STT.
+        language_code : Optional[str]
+            Optional ISO-639 language code for STT.
+
+        Yields
+        ------
+        Dict[str, Any]
+            Speech stream event payload.
+        """
+        ws_url = self._build_speech_ws_url()
+        start_frame = {
+            "type": "start",
+            "session_id": session_id,
+            "search_query_id": search_query_id,
+            "tts_enabled": tts_enabled,
+            "audio_format": audio_format,
+            "audio_file_name": audio_file_name,
+            "language_code": language_code,
+        }
+        audio_frame = {
+            "type": "audio",
+            "chunk": base64.b64encode(audio_bytes).decode("ascii"),
+        }
+        end_frame = {"type": "end"}
+
+        async with websockets.connect(ws_url, ping_interval=None) as websocket:
+            await websocket.send(json.dumps(start_frame))
+            await websocket.send(json.dumps(audio_frame))
+            await websocket.send(json.dumps(end_frame))
+
+            while True:
+                try:
+                    message = await websocket.recv()
+                except websockets.ConnectionClosed:
+                    break
+                payload = json.loads(message)
+                event_type = payload.get("type")
+                data = payload.get("data", {})
+
+                if event_type == "info" and data.get("message") == "Speech session completed.":
+                    break
+                if event_type == "error":
+                    raise RuntimeError(data.get("error", "Speech stream error"))
+                if isinstance(payload, dict):
+                    yield payload
+
+    def _build_speech_ws_url(self) -> str:
+        """
+        Build the speech WebSocket URL from the ML API base URL.
+
+        Returns
+        -------
+        str
+            WebSocket endpoint URL.
+        """
+        parsed = urlparse(self.ml_base_url)
+        scheme = "wss" if parsed.scheme == "https" else "ws"
+        base_path = parsed.path.rstrip("/")
+        speech_path = f"{base_path}/speech/stream"
+        return urlunparse((scheme, parsed.netloc, speech_path, "", "", ""))
 
     async def evaluate_interview(self, session_id: str, search_query_id: int) -> Dict[str, Any]:
         """

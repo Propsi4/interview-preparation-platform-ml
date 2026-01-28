@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 # Thirdparty imports
 import httpx
 import streamlit as st
+import base64
 
 # Local imports
 from ui.api.client import InterviewAPIClient
@@ -243,6 +244,111 @@ if not can_chat:
 if st.session_state.get("clear_chat_input", False):
     st.session_state["chat_input"] = ""
     st.session_state["clear_chat_input"] = False
+
+if "voice_input_key" not in st.session_state:
+    st.session_state.voice_input_key = 0
+
+voice_expanded = st.session_state.get("voice_expanded", True)
+with st.expander("Voice Message", expanded=voice_expanded):
+    voice_enabled = st.checkbox("Enable voice response", value=True, disabled=not can_chat)
+    input_key = f"voice_audio_input_{st.session_state.voice_input_key}"
+    recorded_audio = st.audio_input("Record a voice message", disabled=not can_chat, key=input_key)
+
+    if recorded_audio:
+        st.session_state["voice_audio_bytes"] = recorded_audio.getvalue()
+        st.session_state["voice_audio_name"] = recorded_audio.name or "streamlit_recording.wav"
+        st.session_state["voice_audio_type"] = recorded_audio.type
+
+    voice_audio_bytes = st.session_state.get("voice_audio_bytes")
+    voice_audio_name = st.session_state.get("voice_audio_name", "streamlit_recording.wav")
+    voice_audio_type = st.session_state.get("voice_audio_type", "audio/wav")
+    if voice_audio_bytes:
+        st.audio(voice_audio_bytes, format=voice_audio_type)
+
+    voice_response_audio = st.session_state.get("voice_response_audio")
+    if voice_response_audio:
+        st.caption("Latest voice response")
+        st.audio(voice_response_audio, format="audio/mp3")
+
+    send_voice_clicked = st.button("Send voice message", disabled=not can_chat or not voice_audio_bytes)
+
+if send_voice_clicked and voice_audio_bytes:
+    try:
+        with st.chat_message("assistant"):
+            answer_slot = st.empty()
+            audio_slot = st.empty()
+
+            async def stream_voice_response() -> Dict[str, Any]:
+                """
+                Stream voice response events and return the final payload.
+
+                Returns
+                -------
+                Dict[str, Any]
+                    Streamed transcript, response, and audio bytes.
+                """
+                transcript_text: Optional[str] = None
+                answer_text = ""
+                interview_finished = False
+                audio_chunks: list[bytes] = []
+
+                async for event in client.speech_stream_events(
+                    session_id=session_id,
+                    search_query_id=int(get_search_query_id()),
+                    audio_bytes=voice_audio_bytes,
+                    tts_enabled=voice_enabled,
+                    audio_file_name=voice_audio_name,
+                ):
+                    event_type = event.get("type")
+                    data = event.get("data", {})
+                    if event_type == "transcript":
+                        transcript_text = data.get("text")
+                    elif event_type == "answer":
+                        answer_text += data.get("token", "")
+                        answer_slot.markdown(answer_text + "▌")
+                    elif event_type == "complete":
+                        answer_text = data.get("response", answer_text)
+                        interview_finished = bool(data.get("interview_finished", False))
+                        answer_slot.markdown(answer_text)
+                    elif event_type == "audio_chunk":
+                        chunk = data.get("chunk")
+                        if chunk:
+                            audio_chunks.append(base64.b64decode(chunk))
+                            audio_slot.audio(b"".join(audio_chunks), format="audio/mp3")
+                    elif event_type == "error":
+                        error_msg = data.get("error", "Speech stream error")
+                        raise RuntimeError(error_msg)
+
+                return {
+                    "transcript": transcript_text,
+                    "response": answer_text,
+                    "audio_bytes": b"".join(audio_chunks) if audio_chunks else None,
+                    "interview_finished": interview_finished,
+                }
+
+        result = _run_async(stream_voice_response())
+        transcript = result.get("transcript") or "Voice message"
+        response_text = result.get("response") or ""
+        interview_finished = bool(result.get("interview_finished", False))
+
+        add_message("user", transcript)
+        add_message("assistant", response_text)
+        set_interview_finished(interview_finished)
+
+        audio_bytes = result.get("audio_bytes")
+        if audio_bytes:
+            st.session_state["voice_response_audio"] = audio_bytes
+
+        st.session_state["voice_audio_bytes"] = None
+        st.session_state["voice_audio_name"] = None
+        st.session_state["voice_audio_type"] = None
+        st.session_state["voice_expanded"] = False
+        st.session_state.voice_input_key += 1
+        st.rerun()
+    except Exception as exc:
+        st.error(f"Failed to send voice message: {exc}")
+
+st.divider()
 
 user_input = st.text_area("Your message", height=120, key="chat_input")
 send_clicked = st.button("Send", type="primary", disabled=not can_chat)
