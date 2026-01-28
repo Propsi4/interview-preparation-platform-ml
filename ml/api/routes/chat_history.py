@@ -21,7 +21,7 @@ history_manager = ConversationHistoryManager()
 
 
 @router.get("/session/{session_id}")
-async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema:
+async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema | StatusResponseSchema:
     """
     Get all messages for a specific chat session.
 
@@ -32,7 +32,7 @@ async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema:
 
     Returns
     -------
-    ChatSessionDetailsSchema
+    ChatSessionDetailsSchema | StatusResponseSchema
         JSONResponse with messages for the session.
     """
     try:
@@ -69,12 +69,12 @@ async def get_messages_for_session(session_id: str) -> ChatSessionDetailsSchema:
             )
 
     except Exception as e:
-        logger.error(f"Error getting messages for session {session_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve messages: {str(e)}")
+        logger.warning(f"Error getting messages for session {session_id}: {e}", exc_info=True)
+        return StatusResponseSchema(status="error", message=f"Failed to retrieve messages: {str(e)}")
 
 
-@router.get("/sessions", response_model=List[ChatSessionOverviewSchema])
-async def list_chat_sessions() -> List[ChatSessionOverviewSchema]:
+@router.get("/sessions", response_model=List[ChatSessionOverviewSchema] | StatusResponseSchema)
+async def list_chat_sessions() -> List[ChatSessionOverviewSchema] | StatusResponseSchema:
     """
     List all chat sessions with basic information.
 
@@ -88,7 +88,7 @@ async def list_chat_sessions() -> List[ChatSessionOverviewSchema]:
         return chat_sessions
     except Exception as e:
         logger.error(f"Error listing chat sessions: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to list chat sessions: {str(e)}")
+        return StatusResponseSchema(status="error", message=f"Failed to list chat sessions: {str(e)}")
 
 
 @router.patch("/session/{session_id}/title")
