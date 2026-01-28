@@ -62,6 +62,106 @@ class TechnicalInterviewChatRequestSchema(BaseModel):
     )
 
 
+class SpeechStartFrameSchema(BaseModel):
+    """WebSocket frame to start a speech session."""
+
+    type: Literal["start"] = Field(default="start", description="Frame type")
+    session_id: str = Field(..., description="Chat session identifier")
+    search_query_id: int = Field(..., description="Search query identifier")
+    tts_enabled: bool = Field(default=True, description="Enable TTS audio output")
+    audio_format: Optional[str] = Field(
+        default=None,
+        description="Optional STT audio format hint (e.g., 'pcm_s16le_16')",
+    )
+    audio_file_name: str = Field(
+        default="speech_input.wav",
+        description="File name used for audio transcription metadata",
+    )
+    language_code: Optional[str] = Field(
+        default=None,
+        description="Optional ISO-639 language code for STT",
+    )
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "type": "start",
+                "session_id": "session_123",
+                "search_query_id": 1,
+                "tts_enabled": True,
+                "audio_format": "other",
+                "audio_file_name": "speech_input.wav",
+                "language_code": "en",
+            }
+        },
+    )
+
+
+class SpeechAudioFrameSchema(BaseModel):
+    """WebSocket frame carrying a base64 audio chunk."""
+
+    type: Literal["audio"] = Field(default="audio", description="Frame type")
+    chunk: str = Field(..., description="Base64-encoded audio chunk")
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {"type": "audio", "chunk": "base64-encoded-audio-bytes"},
+        },
+    )
+
+
+class SpeechEndFrameSchema(BaseModel):
+    """WebSocket frame to finalize a speech session."""
+
+    type: Literal["end"] = Field(default="end", description="Frame type")
+
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"example": {"type": "end"}})
+
+
+class SpeechTranscriptionResponseSchema(BaseModel):
+    """Response body for speech transcription."""
+
+    text: str = Field(..., description="Transcribed text")
+
+
+class SpeechSynthesisRequestSchema(BaseModel):
+    """Request body for speech synthesis."""
+
+    text: str = Field(..., min_length=1, description="Text to synthesize")
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"example": {"text": "Explain how a binary search works."}},
+    )
+
+
+class SpeechStreamEventSchema(BaseModel):
+    """WebSocket event emitted by the speech stream."""
+
+    type: Literal[
+        "transcript",
+        "reasoning",
+        "answer",
+        "complete",
+        "audio_chunk",
+        "error",
+        "info",
+    ] = Field(..., description="Event type")
+    data: dict = Field(default_factory=dict, description="Event payload")
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "type": "audio_chunk",
+                "data": {"chunk": "base64-encoded-audio-bytes"},
+            }
+        },
+    )
+
+
 class EvaluationDispatchRequestSchema(BaseModel):
     """Request body for dispatching vacancy interview assessments."""
 

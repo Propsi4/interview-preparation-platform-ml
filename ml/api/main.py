@@ -9,6 +9,7 @@ from ml.api.routes.chat_history import router as chat_history_router
 from ml.api.routes.chat import router as chat_router
 from ml.api.routes.evaluation import router as evaluation_router
 from ml.api.routes.scrapers import router as scrapers_router
+from ml.api.routes.speech import router as speech_router
 from ml.api.schemas import StatusResponseSchema
 from ml.config.api import api_config
 
@@ -57,6 +58,7 @@ async def health(request: Request) -> StatusResponseSchema:
 app.include_router(scrapers_router, prefix="/scrapers", tags=["Scrapers"])
 app.include_router(chat_history_router, prefix="/conversation_history", tags=["Conversation History"])
 app.include_router(chat_router, prefix="/chat", tags=["Chat"])
+app.include_router(speech_router, prefix="/speech", tags=["Speech"])
 app.include_router(evaluation_router, prefix="/evaluation", tags=["Evaluation"])
 
 

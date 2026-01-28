@@ -210,87 +210,8 @@ def stream_technical_interview(
     """
 
     async def event_stream() -> AsyncGenerator[str, None]:
-        try:
-            start_time = time.time()
-            first_token_received = False
-            llm_model, llm_temperature, additional_llm_kwargs = _resolve_llm_config(payload)
-            vacancy_descriptions = await _load_vacancy_descriptions(payload.search_query_id)
-            request = await _build_request_payload(session_id, payload)
-            agent = TechnicalInterviewAgent()
-
-            lm = dspy.LM(
-                model=llm_model,
-                temperature=llm_temperature,
-                **additional_llm_kwargs,
-            )
-
-            with dspy.context(lm=lm, track_usage=True):
-                start_index = len(getattr(lm, "history", []) or [])
-                stream_agent = dspy.streamify(
-                    agent,
-                    stream_listeners=[
-                        dspy.streaming.StreamListener(signature_field_name="response"),
-                        dspy.streaming.StreamListener(signature_field_name="reasoning"),
-                    ],
-                    is_async_program=True,
-                )
-
-                async for chunk in stream_agent(
-                    vacancy_descriptions=vacancy_descriptions,
-                    chat_history=request.chat_history,
-                    query=request.query,
-                ):
-                    if isinstance(chunk, dspy.streaming.StreamResponse):
-                        if not first_token_received:
-                            time_to_first_token = time.time() - start_time
-                            logger.debug(f"Time to first token: {time_to_first_token:.4f}s")
-                            first_token_received = True
-                        event = {
-                            "status": "success",
-                            "session_id": session_id,
-                            "data": {"token": chunk.chunk},
-                        }
-                        if chunk.signature_field_name == "reasoning":
-                            event["type"] = "reasoning"
-                        else:
-                            event["type"] = "answer"
-                        yield f"data: {json.dumps(event)}\n\n"
-                    elif isinstance(chunk, dspy.Prediction):
-                        response_schema = TechnicalInterviewResponseSchema(
-                            interview_finished=getattr(chunk, "interview_finished", False),
-                            response=getattr(chunk, "response", ""),
-                        )
-
-                        complete_event = {
-                            "type": "complete",
-                            "status": "success",
-                            "session_id": session_id,
-                            "data": response_schema.model_dump(),
-                        }
-                        yield f"data: {json.dumps(complete_event)}\n\n"
-                        total_time = time.time() - start_time
-                        logger.debug(f"Technical interview stream total time: {total_time:.4f}s")
-
-                        # FIXME: Price is not calculated when using streamify
-                        request_cost = extract_request_cost(lm, start_index)
-                        logger.debug(f"Request cost: {request_cost}")
-                        await persist_chat_and_cost(
-                            session_id=session_id,
-                            user_message=payload.query,
-                            response_text=response_schema.response,
-                            request_cost=request_cost,
-                            search_query_id=payload.search_query_id,
-                            interview_finished=response_schema.interview_finished,
-                        )
-        except Exception as e:
-            logger.error(f"Error running technical interview stream for session {session_id}: {e}")
-            error_event = {
-                "type": "error",
-                "status": "error",
-                "session_id": session_id,
-                "data": {"error": "Internal server error"},
-            }
-            yield f"data: {json.dumps(error_event)}\n\n"
+        async for event in iter_technical_interview_events(session_id=session_id, payload=payload):
+            yield f"data: {json.dumps(event)}\n\n"
 
     return StreamingResponse(
         event_stream(),
@@ -302,3 +223,105 @@ def stream_technical_interview(
             "Access-Control-Allow-Headers": "*",
         },
     )
+
+
+async def iter_technical_interview_events(
+    session_id: str,
+    payload: TechnicalInterviewChatRequestSchema,
+) -> AsyncGenerator[dict, None]:
+    """
+    Stream technical interview events as structured dictionaries.
+
+    Parameters
+    ----------
+    session_id : str
+        Chat session identifier.
+    payload : TechnicalInterviewChatRequestSchema
+        Interview turn input (search_query_id and query).
+
+    Yields
+    ------
+    dict
+        Stream event payload containing tokens or completion.
+    """
+    try:
+        start_time = time.time()
+        first_token_received = False
+        llm_model, llm_temperature, additional_llm_kwargs = _resolve_llm_config(payload)
+        vacancy_descriptions = await _load_vacancy_descriptions(payload.search_query_id)
+        request = await _build_request_payload(session_id, payload)
+        agent = TechnicalInterviewAgent()
+
+        lm = dspy.LM(
+            model=llm_model,
+            temperature=llm_temperature,
+            **additional_llm_kwargs,
+        )
+
+        with dspy.context(lm=lm, track_usage=True):
+            start_index = len(getattr(lm, "history", []) or [])
+            stream_agent = dspy.streamify(
+                agent,
+                stream_listeners=[
+                    dspy.streaming.StreamListener(signature_field_name="response"),
+                    dspy.streaming.StreamListener(signature_field_name="reasoning"),
+                ],
+                is_async_program=True,
+            )
+
+            async for chunk in stream_agent(
+                vacancy_descriptions=vacancy_descriptions,
+                chat_history=request.chat_history,
+                query=request.query,
+            ):
+                if isinstance(chunk, dspy.streaming.StreamResponse):
+                    if not first_token_received:
+                        time_to_first_token = time.time() - start_time
+                        logger.debug(f"Time to first token: {time_to_first_token:.4f}s")
+                        first_token_received = True
+                    event = {
+                        "status": "success",
+                        "session_id": session_id,
+                        "data": {"token": chunk.chunk},
+                    }
+                    if chunk.signature_field_name == "reasoning":
+                        event["type"] = "reasoning"
+                    else:
+                        event["type"] = "answer"
+                    yield event
+                elif isinstance(chunk, dspy.Prediction):
+                    response_schema = TechnicalInterviewResponseSchema(
+                        interview_finished=getattr(chunk, "interview_finished", False),
+                        response=getattr(chunk, "response", ""),
+                    )
+
+                    complete_event = {
+                        "type": "complete",
+                        "status": "success",
+                        "session_id": session_id,
+                        "data": response_schema.model_dump(),
+                    }
+                    yield complete_event
+                    total_time = time.time() - start_time
+                    logger.debug(f"Technical interview stream total time: {total_time:.4f}s")
+
+                    # FIXME: Price is not calculated when using streamify
+                    request_cost = extract_request_cost(lm, start_index)
+                    logger.debug(f"Request cost: {request_cost}")
+                    await persist_chat_and_cost(
+                        session_id=session_id,
+                        user_message=payload.query,
+                        response_text=response_schema.response,
+                        request_cost=request_cost,
+                        search_query_id=payload.search_query_id,
+                        interview_finished=response_schema.interview_finished,
+                    )
+    except Exception as e:
+        logger.error(f"Error running technical interview stream for session {session_id}: {e}")
+        error_event = {
+            "type": "error",
+            "status": "error",
+            "session_id": session_id,
+            "data": {"error": "Internal server error"},
+        }
+        yield error_event
