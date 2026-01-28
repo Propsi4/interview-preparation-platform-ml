@@ -147,6 +147,7 @@ class ConversationHistoryManager:
                             total_messages=total_messages,
                             price=chat_session.price,
                             interview_finished=chat_session.interview_finished,
+                            evaluated=chat_session.evaluated,
                             search_query_id=chat_session.search_query_id,
                         )
                     )

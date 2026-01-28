@@ -17,10 +17,36 @@ from ml.config.openai import openai_config
 from ml.conversation_history.manager import ConversationHistoryManager
 from ml.core.logging import logger
 from ml.db.engine import connect_to_db
+from ml.db.repositories.chat_sessions import ChatSessionRepository
 from ml.db.repositories.vacancies import VacancyRepository
 from ml.utils import extract_request_cost, persist_chat_and_cost
 
 history_manager = ConversationHistoryManager()
+
+
+class InterviewAlreadyFinishedError(RuntimeError):
+    """Raised when inference is requested for a finished interview."""
+
+
+async def ensure_interview_not_finished(session_id: str) -> None:
+    """
+    Ensure the interview is still active for a session.
+
+    Parameters
+    ----------
+    session_id : str
+        Chat session identifier.
+
+    Returns
+    -------
+    None
+        Raises InterviewAlreadyFinishedError when the interview is finished.
+    """
+    async with connect_to_db() as session:
+        session_repo = ChatSessionRepository(session)
+        session_model = await session_repo.get_by_session_id(session_id)
+        if session_model is not None and session_model.interview_finished:
+            raise InterviewAlreadyFinishedError("Interview already finished for this session.")
 
 
 def _resolve_llm_config(payload: TechnicalInterviewChatRequestSchema) -> tuple[str, float, dict]:

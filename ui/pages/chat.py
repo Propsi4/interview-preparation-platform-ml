@@ -16,6 +16,7 @@ from ui.config.settings import settings
 from ui.utils.state import (
     add_message,
     add_search_query,
+    get_evaluated,
     get_interview_finished,
     get_messages,
     get_search_query_id,
@@ -25,6 +26,7 @@ from ui.utils.state import (
     set_interview_finished,
     set_messages,
     set_progress,
+    set_evaluated,
     set_search_query_id,
     set_search_queries,
 )
@@ -86,13 +88,21 @@ def _load_history_if_needed(target_session_id: str) -> None:
         set_messages([{"role": msg.get("role"), "content": msg.get("content")} for msg in messages])
         set_search_query_id(history.get("search_query_id"))
         set_interview_finished(bool(history.get("interview_finished", False)))
+        set_evaluated(bool(history.get("evaluated", False)))
         st.session_state.last_loaded_session = target_session_id
         st.session_state.evaluation_results = None
+        if get_evaluated():
+            try:
+                results = _run_async(client.get_evaluation_results(target_session_id))
+                st.session_state.evaluation_results = results
+            except Exception:
+                pass
     except httpx.HTTPStatusError as exc:
         status_code = exc.response.status_code
         if status_code in {404, 500}:
             set_messages([])
             set_interview_finished(False)
+            set_evaluated(False)
             st.session_state.last_loaded_session = target_session_id
             st.session_state.evaluation_results = None
             st.info("No history yet for this session.")
@@ -223,9 +233,12 @@ st.subheader("Chat")
 for message in get_messages():
     render_message(message)
 
-can_chat = get_search_query_id() is not None
+can_chat = get_search_query_id() is not None and not get_interview_finished()
 if not can_chat:
-    st.info("Set a search_query_id to start chatting.")
+    if get_search_query_id() is None:
+        st.info("Set a search_query_id to start chatting.")
+    elif get_interview_finished():
+        st.info("Interview is finished. Start a new session to continue.")
 
 if st.session_state.get("clear_chat_input", False):
     st.session_state["chat_input"] = ""
@@ -300,13 +313,20 @@ if send_clicked and user_input.strip():
 st.divider()
 
 st.subheader("Evaluate Interview")
-evaluation_disabled = not get_interview_finished() or get_search_query_id() is None
+evaluation_disabled = (
+    not get_interview_finished()
+    or get_search_query_id() is None
+    or get_evaluated()
+)
 if not get_interview_finished():
     st.info("Evaluation is enabled once the interview is finished.")
+elif get_evaluated():
+    st.info("Evaluation already dispatched for this session.")
 
 if st.button("Evaluate Interview", disabled=evaluation_disabled, key="evaluate_interview"):
     try:
         _run_async(client.evaluate_interview(session_id, int(get_search_query_id())))
+        set_evaluated(True)
         results = _run_async(client.get_evaluation_results(session_id))
         st.session_state["evaluation_results"] = results
         st.success("Evaluation dispatched. Results loaded.")

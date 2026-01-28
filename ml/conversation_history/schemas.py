@@ -17,6 +17,7 @@ class ChatSessionOverviewSchema(BaseModel):
     total_messages: int = Field(..., description="Number of messages in the session")
     price: float = Field(..., description="Session price")
     interview_finished: bool = Field(..., description="Whether the interview is finished")
+    evaluated: bool = Field(..., description="Whether evaluation was dispatched")
 
 
 class ChatMessageSchema(BaseModel):

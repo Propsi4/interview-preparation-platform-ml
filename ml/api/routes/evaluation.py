@@ -28,12 +28,26 @@ async def dispatch_evaluation(payload: EvaluationDispatchRequestSchema) -> Evalu
     EvaluationDispatchResponseSchema
         Count of tasks dispatched.
     """
-    # if interview is not finished, raise an error
     async with connect_to_db() as session:
         session_repo = ChatSessionRepository(session)
         session_model = await session_repo.get_by_session_id(payload.chat_session_id)
+        if session_model is None:
+            raise HTTPException(status_code=404, detail=f"Session {payload.chat_session_id} not found.")
         if not session_model.interview_finished:
-            raise HTTPException(status_code=400, detail="Interview is not finished. Please finish the interview first and try again.")
+            raise HTTPException(
+                status_code=400,
+                detail="Interview is not finished. Please finish the interview first and try again.",
+            )
+        if session_model.evaluated:
+            raise HTTPException(status_code=409, detail="Evaluation already dispatched for this session.")
+
+        score_repo = VacancyInterviewScoreRepository(session)
+        existing_scores = await score_repo.count_by(chat_session_id=payload.chat_session_id)
+        if existing_scores > 0:
+            raise HTTPException(status_code=409, detail="Evaluation results already exist for this session.")
+
+        session_model.evaluated = True
+        await session_repo.commit()
 
     dispatched = await dispatch_vacancy_assessments(
         chat_session_id=payload.chat_session_id,

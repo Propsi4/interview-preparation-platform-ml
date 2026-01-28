@@ -31,6 +31,8 @@ def init_session_state() -> None:
         st.session_state.last_loaded_session = None
     if "evaluation_results" not in st.session_state:
         st.session_state.evaluation_results = None
+    if "evaluated" not in st.session_state:
+        st.session_state.evaluated = False
     if "search_queries" not in st.session_state:
         st.session_state.search_queries = []
 
@@ -70,6 +72,7 @@ def set_session_id(session_id: str) -> None:
     st.session_state.progress = {}
     st.session_state.last_loaded_session = None
     st.session_state.evaluation_results = None
+    st.session_state.evaluated = False
     st.session_state.search_queries = []
 
 
@@ -179,6 +182,35 @@ def set_interview_finished(value: bool) -> None:
         Updates Streamlit session state.
     """
     st.session_state.interview_finished = bool(value)
+
+
+def get_evaluated() -> bool:
+    """
+    Get evaluation dispatch flag.
+
+    Returns
+    -------
+    bool
+        Evaluation dispatch state.
+    """
+    return bool(st.session_state.get("evaluated", False))
+
+
+def set_evaluated(value: bool) -> None:
+    """
+    Set evaluation dispatch flag.
+
+    Parameters
+    ----------
+    value : bool
+        Evaluation dispatch state.
+
+    Returns
+    -------
+    None
+        Updates Streamlit session state.
+    """
+    st.session_state.evaluated = bool(value)
 
 
 def get_messages() -> List[Dict[str, Any]]:

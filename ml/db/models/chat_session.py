@@ -21,6 +21,7 @@ class ChatSessionModel(TimestampedBase):
     title: Mapped[str | None] = mapped_column(Text, nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     interview_finished: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    evaluated: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     messages: Mapped[list["ChatMessageModel"]] = relationship(
         "ChatMessageModel",
