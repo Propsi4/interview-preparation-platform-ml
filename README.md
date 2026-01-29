@@ -1,19 +1,16 @@
 # Interview Preparation Platform
 
-## ElevenLabs Speech Integration
+## OpenAI Speech Integration
 
 ### Environment Variables
 
 Set these in your environment or `.env` file:
 
-- `ELEVENLABS_API_KEY`
-- `ELEVENLABS_TTS_VOICE_ID`
-- `ELEVENLABS_TTS_MODEL_ID` (default: `eleven_multilingual_v2`)
-- `ELEVENLABS_TTS_OUTPUT_FORMAT` (default: `mp3_44100_128`)
-- `ELEVENLABS_TTS_OPTIMIZE_STREAMING_LATENCY` (default: `2`)
-- `ELEVENLABS_STT_MODEL_ID` (default: `scribe_v1`)
-- `ELEVENLABS_STT_LANGUAGE_CODE` (optional)
-- `ELEVENLABS_STT_ENABLE_LOGGING` (default: `true`)
+- `OPENAI_API_KEY`
+- `OPENAI_STT_MODEL` (default: `whisper-1`)
+- `OPENAI_TTS_MODEL` (default: `gpt-4o-mini-tts`)
+- `OPENAI_TTS_VOICE` (default: `alloy`)
+- `OPENAI_TTS_OUTPUT_FORMAT` (default: `mp3`)
 
 ### Speech-to-Text (HTTP)
 

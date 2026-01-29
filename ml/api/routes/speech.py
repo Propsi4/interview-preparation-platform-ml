@@ -21,10 +21,10 @@ from ml.api.schemas import (
     SpeechTranscriptionResponseSchema,
     TechnicalInterviewChatRequestSchema,
 )
-from ml.config.elevenlabs import elevenlabs_config
+from ml.config.openai import openai_config
 from ml.core.logging import logger
 from ml.jobs.pipelines.chat import ensure_interview_not_finished, iter_technical_interview_events
-from ml.services.elevenlabs import stream_tts_audio, transcribe_audio
+from ml.services.openai_speech import stream_tts_audio, transcribe_audio
 
 router = APIRouter()
 
@@ -123,7 +123,7 @@ async def transcribe_speech_audio(
     audio_file: UploadFile = File(...),
 ) -> SpeechTranscriptionResponseSchema:
     """
-    Transcribe an uploaded audio file using ElevenLabs STT.
+    Transcribe an uploaded audio file using OpenAI Whisper.
 
     Parameters
     ----------
@@ -149,7 +149,7 @@ async def synthesize_speech_audio(
     payload: SpeechSynthesisRequestSchema,
 ) -> FileResponse:
     """
-    Synthesize speech audio from text using ElevenLabs TTS.
+    Synthesize speech audio from text using OpenAI TTS.
 
     Parameters
     ----------
@@ -162,7 +162,7 @@ async def synthesize_speech_audio(
         Complete audio payload.
     """
     try:
-        output_format = elevenlabs_config.TTS_OUTPUT_FORMAT
+        output_format = openai_config.TTS_OUTPUT_FORMAT
         audio_bytes = b"".join(
             stream_tts_audio(
                 text=payload.text,
