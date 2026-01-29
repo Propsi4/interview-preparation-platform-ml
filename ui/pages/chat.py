@@ -130,8 +130,34 @@ def _load_search_queries() -> None:
         st.warning(f"Could not load search queries: {exc}")
 
 
+def _load_evaluation_results_if_needed(target_session_id: str) -> None:
+    """
+    Load evaluation results if they are not cached or still pending.
+
+    Parameters
+    ----------
+    target_session_id : str
+        Chat session identifier.
+
+    Returns
+    -------
+    None
+        Updates evaluation results cache when available.
+    """
+    cached_results = st.session_state.get("evaluation_results")
+    should_fetch = cached_results is None or (get_evaluated() and not cached_results)
+    if not should_fetch:
+        return
+    try:
+        results = _run_async(client.get_evaluation_results(target_session_id))
+        st.session_state.evaluation_results = results
+    except Exception:
+        pass
+
+
 _load_history_if_needed(session_id)
 _load_search_queries()
+_load_evaluation_results_if_needed(session_id)
 
 st.subheader("Create Search Query")
 search_query = st.text_input("Search query", placeholder="e.g. Data Scientist, Backend Engineer")
@@ -276,7 +302,6 @@ if send_voice_clicked and voice_audio_bytes:
     try:
         with st.chat_message("assistant"):
             answer_slot = st.empty()
-            audio_slot = st.empty()
 
             async def stream_voice_response() -> Dict[str, Any]:
                 """
@@ -314,7 +339,6 @@ if send_voice_clicked and voice_audio_bytes:
                         chunk = data.get("chunk")
                         if chunk:
                             audio_chunks.append(base64.b64decode(chunk))
-                            audio_slot.audio(b"".join(audio_chunks), format="audio/mp3")
                     elif event_type == "error":
                         error_msg = data.get("error", "Speech stream error")
                         raise RuntimeError(error_msg)
