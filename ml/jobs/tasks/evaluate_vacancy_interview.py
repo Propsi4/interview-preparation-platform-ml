@@ -1,10 +1,9 @@
 """Celery task for evaluating interview performance against a vacancy."""
 
 import asyncio
-from typing import Any, List
+from typing import Any, Dict, List
 
 import dspy
-from langchain_core.messages import BaseMessage
 
 from ml.agents.implementations.assessment import VacancyInterviewAssessmentAgent, VacancyInterviewAssessmentSchema
 from ml.config.openai import openai_config
@@ -13,6 +12,7 @@ from ml.db.engine import connect_to_db
 from ml.db.models.vacancy_interview_score import VacancyInterviewScoreModel
 from ml.db.repositories.vacancy_interview_scores import VacancyInterviewScoreRepository
 from ml.jobs.celery_app import celery_app
+from ml.conversation_history.utils import dicts_to_langchain_messages
 
 
 def _normalize_score(raw_score: Any) -> float:
@@ -73,10 +73,10 @@ def _normalize_assessment(response_obj: Any) -> VacancyInterviewAssessmentSchema
 )
 def evaluate_vacancy_interview(
     vacancy_description: str,
-    chat_history: List[BaseMessage],
+    chat_history: List[Dict[str, str]],
     search_query_id: int,
     chat_session_id: str,
-) -> None:
+) -> VacancyInterviewAssessmentSchema:
     """
     Evaluate interview performance against a vacancy description.
 
@@ -84,8 +84,8 @@ def evaluate_vacancy_interview(
     ----------
     vacancy_description : str
         Vacancy description to evaluate.
-    chat_history : list[BaseMessage]
-        Chat history represented as dictionaries.
+    chat_history : List[Dict[str, str]]
+        Chat history represented as dictionaries with "role" and "content" keys.
     search_query_id : int
         Search query identifier.
     chat_session_id : str
@@ -117,7 +117,7 @@ def evaluate_vacancy_interview(
     with dspy.context(lm=lm):
         prediction = agent(
             vacancy_description=vacancy_description,
-            chat_history=chat_history,
+            chat_history=dicts_to_langchain_messages(chat_history),
         )
 
     assessment = _normalize_assessment(getattr(prediction, "assessment", None))
@@ -136,3 +136,5 @@ def evaluate_vacancy_interview(
             await score_repo.commit()
 
     asyncio.run(_persist_assessment())
+
+    return assessment

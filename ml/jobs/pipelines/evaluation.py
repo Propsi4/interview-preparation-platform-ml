@@ -5,6 +5,7 @@ from typing import List
 from langchain_core.messages import BaseMessage
 
 from ml.conversation_history.manager import ConversationHistoryManager
+from ml.conversation_history.utils import langchain_messages_to_dicts
 from ml.core.logging import logger
 from ml.db.engine import connect_to_db
 from ml.db.repositories.vacancies import VacancyRepository
@@ -43,7 +44,7 @@ async def dispatch_vacancy_assessments(chat_session_id: str, search_query_id: in
             name="assessment.evaluate_vacancy_interview",
             kwargs={
                 "vacancy_description": vacancy.description,
-                "chat_history": chat_history,
+                "chat_history": langchain_messages_to_dicts(chat_history),
                 "search_query_id": search_query_id,
                 "chat_session_id": chat_session_id,
             },
@@ -51,9 +52,6 @@ async def dispatch_vacancy_assessments(chat_session_id: str, search_query_id: in
         dispatched += 1
 
     logger.info(
-        "Dispatched %s vacancy assessment tasks for session=%s, query=%s",
-        dispatched,
-        chat_session_id,
-        search_query_id,
+        f"Dispatched {dispatched} vacancy assessment tasks for session={chat_session_id}, query={search_query_id}",
     )
     return dispatched
