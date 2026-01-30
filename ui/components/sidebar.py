@@ -66,6 +66,10 @@ def render_sidebar() -> None:
         if current_session_id in options:
             index = options.index(current_session_id)
 
+        if st.session_state.get("new_session_pending") and current_session_id in options:
+            st.session_state.sidebar_session_selector = current_session_id
+            st.session_state.new_session_pending = False
+
         def format_option(option: str) -> str:
             if option == NEW_SESSION_MARKER:
                 return "➕ New Session"
@@ -85,10 +89,13 @@ def render_sidebar() -> None:
             index=index,
             key="sidebar_session_selector",
         )
+        previous_selection = st.session_state.get("sidebar_session_selector_prev")
+        st.session_state.sidebar_session_selector_prev = selected_option
 
         if selected_option == NEW_SESSION_MARKER:
-            if current_session_id in [session["session_id"] for session in sessions]:
+            if previous_selection != NEW_SESSION_MARKER:
                 new_id = str(uuid.uuid4())
+                st.session_state.new_session_pending = True
                 set_session_id(new_id)
                 st.rerun()
         else:

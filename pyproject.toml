@@ -19,13 +19,13 @@ import_heading_firstparty = "Local imports"
 import_heading_localfolder = "Local folder imports"
 
 [tool.poetry]
-name = "interview_preparation_platform"
+name = "ml"
 version = "0.1.0"
 description = "A platform to analyze the IT vacancies and prepare the candidate for the interview  ."
 authors = ["Vadym Burylo <gaenday328@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "ml" }
+    { include = "src" }
 ]
 
 [tool.poetry.dependencies]
