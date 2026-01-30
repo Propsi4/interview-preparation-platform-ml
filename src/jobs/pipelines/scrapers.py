@@ -61,7 +61,7 @@ async def get_scrape_progress(search_query_id: int) -> ProgressResponseSchema:
         total_results = search_query.total_results
         progress_value = 0.0
         if total_results and total_results > 0:
-            progress_value = round(min(processed_results / total_results, 1.0), 1)
+            progress_value = round(min(float(processed_results) / float(total_results), 1.0), 2)
 
         return ProgressResponseSchema(
             search_query_id=search_query_id,
