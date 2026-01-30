@@ -2,6 +2,7 @@
 
 from typing import List, AsyncGenerator
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uvicorn
 
@@ -44,6 +45,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=api_config.CORS_ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/health", response_model=StatusResponseSchema)
 async def health(request: Request) -> StatusResponseSchema:
@@ -64,7 +73,7 @@ app.include_router(evaluation_router, prefix="/evaluation", tags=["Evaluation"])
 
 if __name__ == "__main__":
     uvicorn.run(
-        app="ml.api.main:app",
+        app="src.api.main:app",
         host=api_config.API_HOST,
         port=api_config.API_PORT,
         reload=api_config.RELOAD_ON_CODE_CHANGE,

@@ -27,6 +27,10 @@ class APIConfig(BaseSettings):
         default=False,
         description="Reload the API server on code change",
     )
+    CORS_ALLOWED_ORIGINS: list[str] = Field(
+        default=["*"],
+        description="List of allowed CORS origins",
+    )
 
 
 api_config = APIConfig()
