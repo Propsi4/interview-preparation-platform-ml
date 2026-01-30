@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ml.db.models.base import TimestampedBase
+from src.db.models.base import TimestampedBase
 
 
 class SearchQueryModel(TimestampedBase):

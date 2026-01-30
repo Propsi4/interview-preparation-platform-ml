@@ -7,8 +7,8 @@ from typing import Mapping, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ml.db.models.vacancies import VacancyModel
-from ml.db.repositories.base import BaseRepository
+from src.db.models.vacancies import VacancyModel
+from src.db.repositories.base import BaseRepository
 
 
 class VacancyRepository(BaseRepository[VacancyModel]):

@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
 # Local imports
-from ml.api.schemas import (
+from src.api.schemas import (
     SpeechAudioFrameSchema,
     SpeechEndFrameSchema,
     SpeechSynthesisRequestSchema,
@@ -21,10 +21,10 @@ from ml.api.schemas import (
     SpeechTranscriptionResponseSchema,
     TechnicalInterviewChatRequestSchema,
 )
-from ml.config.openai import openai_config
-from ml.core.logging import logger
-from ml.jobs.pipelines.chat import ensure_interview_not_finished, iter_technical_interview_events
-from ml.services.openai_speech import stream_tts_audio, transcribe_audio
+from src.config.openai import openai_config
+from src.core.logging import logger
+from src.jobs.pipelines.chat import ensure_interview_not_finished, iter_technical_interview_events
+from src.services.openai_speech import stream_tts_audio, transcribe_audio
 
 router = APIRouter()
 

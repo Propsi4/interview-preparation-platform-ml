@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ml.db.models.search_query import SearchQueryModel
-from ml.db.repositories.base import BaseRepository
-from ml.db.repositories.vacancies import VacancyRepository
+from src.db.models.search_query import SearchQueryModel
+from src.db.repositories.base import BaseRepository
+from src.db.repositories.vacancies import VacancyRepository
 
 
 class SearchQueryRepository(BaseRepository[SearchQueryModel]):

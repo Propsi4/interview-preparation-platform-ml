@@ -3,21 +3,21 @@
 Examples
 --------
 >>> # Start worker:
->>> # celery -A ml.jobs.celery_app.celery_app worker -Q scrapers -l info
+>>> # celery -A src.jobs.celery_app.celery_app worker -Q scrapers -l info
 >>> # Enqueue task:
->>> # from ml.jobs.tasks.scrape_dou_vacancy_details import scrape_vacancy_details
+>>> # from src.jobs.tasks.scrape_dou_vacancy_details import scrape_vacancy_details
 >>> # scrape_vacancy_details.delay(1)
 """
 
 import asyncio
 
-from ml.jobs.pipelines.tech_reqs_extractor import extract_technical_requirements
-from ml.scrapers.schemas.vacancy import VacancySchema
-from ml.db.engine import connect_to_db
-from ml.db.repositories.vacancies import VacancyRepository
-from ml.core.logging import logger
-from ml.jobs.celery_app import celery_app
-from ml.scrapers.implementations.dou import DouScraper
+from src.jobs.pipelines.tech_reqs_extractor import extract_technical_requirements
+from src.scrapers.schemas.vacancy import VacancySchema
+from src.db.engine import connect_to_db
+from src.db.repositories.vacancies import VacancyRepository
+from src.core.logging import logger
+from src.jobs.celery_app import celery_app
+from src.scrapers.implementations.dou import DouScraper
 
 
 @celery_app.task(

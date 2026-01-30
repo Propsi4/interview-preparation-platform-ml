@@ -10,7 +10,7 @@ import dspy
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import AIMessage, HumanMessage
-from ml.core.logging import logger
+from src.core.logging import logger
 
 # Local imports
 from pet_tool.agents.orchestrator.models import OrchestratorIO

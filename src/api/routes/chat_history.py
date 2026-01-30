@@ -5,15 +5,15 @@ from typing import List
 
 # Thirdparty imports
 from fastapi import APIRouter, HTTPException
-from ml.core.logging import logger
+from src.core.logging import logger
 
 # Local imports
-from ml.api.schemas import StatusResponseSchema
-from ml.conversation_history.manager import ConversationHistoryManager
-from ml.conversation_history.schemas import ChatMessageSchema, ChatSessionOverviewSchema, ChatSessionDetailsSchema
-from ml.db.engine import connect_to_db
-from ml.db.repositories.chat_messages import ChatMessageRepository
-from ml.db.repositories.chat_sessions import ChatSessionRepository
+from src.api.schemas import StatusResponseSchema
+from src.conversation_history.manager import ConversationHistoryManager
+from src.conversation_history.schemas import ChatMessageSchema, ChatSessionOverviewSchema, ChatSessionDetailsSchema
+from src.db.engine import connect_to_db
+from src.db.repositories.chat_messages import ChatMessageRepository
+from src.db.repositories.chat_sessions import ChatSessionRepository
 
 router = APIRouter()
 

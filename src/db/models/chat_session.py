@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Boolean, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ml.db.models.base import TimestampedBase
+from src.db.models.base import TimestampedBase
 
 if TYPE_CHECKING:
-    from ml.db.models.chat_message import ChatMessageModel
+    from src.db.models.chat_message import ChatMessageModel
 
 
 class ChatSessionModel(TimestampedBase):

@@ -5,14 +5,14 @@ from typing import Any, Dict, List
 
 import dspy
 
-from ml.agents.implementations.assessment import VacancyInterviewAssessmentAgent, VacancyInterviewAssessmentSchema
-from ml.config.openai import openai_config
-from ml.core.logging import logger
-from ml.db.engine import connect_to_db
-from ml.db.models.vacancy_interview_score import VacancyInterviewScoreModel
-from ml.db.repositories.vacancy_interview_scores import VacancyInterviewScoreRepository
-from ml.jobs.celery_app import celery_app
-from ml.conversation_history.utils import dicts_to_langchain_messages
+from src.agents.implementations.assessment import VacancyInterviewAssessmentAgent, VacancyInterviewAssessmentSchema
+from src.config.openai import openai_config
+from src.core.logging import logger
+from src.db.engine import connect_to_db
+from src.db.models.vacancy_interview_score import VacancyInterviewScoreModel
+from src.db.repositories.vacancy_interview_scores import VacancyInterviewScoreRepository
+from src.jobs.celery_app import celery_app
+from src.conversation_history.utils import dicts_to_langchain_messages
 
 
 def _normalize_score(raw_score: Any) -> float:

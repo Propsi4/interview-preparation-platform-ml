@@ -5,7 +5,7 @@ import dspy
 from langchain_core.messages import AIMessage, HumanMessage
 
 # Local imports
-from ml.conversation_history.manager import ConversationHistoryManager
+from src.conversation_history.manager import ConversationHistoryManager
 
 history_manager = ConversationHistoryManager()
 

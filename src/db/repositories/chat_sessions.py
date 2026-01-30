@@ -5,8 +5,8 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ml.db.models.chat_session import ChatSessionModel
-from ml.db.repositories.base import BaseRepository
+from src.db.models.chat_session import ChatSessionModel
+from src.db.repositories.base import BaseRepository
 
 
 class ChatSessionRepository(BaseRepository[ChatSessionModel]):

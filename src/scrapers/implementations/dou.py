@@ -3,7 +3,7 @@
 Examples
 --------
 >>> import asyncio
->>> from ml.scrapers.dou import DouScraper
+>>> from src.scrapers.dou import DouScraper
 >>> asyncio.run(DouScraper().async_run("HR"))
 """
 
@@ -13,9 +13,9 @@ from typing import Iterable
 
 from playwright.async_api import Locator, Page
 from pydantic import PrivateAttr
-from ml.scrapers.schemas.vacancy import VacanciesOverviewSchema, VacancySchema
-from ml.scrapers.base import ScraperBase
-from ml.core.logging import logger
+from src.scrapers.schemas.vacancy import VacanciesOverviewSchema, VacancySchema
+from src.scrapers.base import ScraperBase
+from src.core.logging import logger
 
 
 class DouScraper(ScraperBase):

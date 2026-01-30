@@ -1,7 +1,7 @@
 """Agent implementations package exports."""
 
-from ml.agents.implementations.technical_interview.technical_interview import TechnicalInterviewAgent
-from ml.agents.implementations.technical_interview.schemas import (
+from src.agents.implementations.technical_interview.technical_interview import TechnicalInterviewAgent
+from src.agents.implementations.technical_interview.schemas import (
     InterviewTurnRequestSchema,
     TechnicalInterviewResponseSchema,
 )

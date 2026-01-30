@@ -1,7 +1,7 @@
 """Pipeline for extracting technical requirements from vacancy descriptions."""
 
-from ml.config.openai import openai_config
-from ml.agents.implementations.tech_requirements_extractor.extractor import TechnicalRequirementsExtractor
+from src.config.openai import openai_config
+from src.agents.implementations.tech_requirements_extractor.extractor import TechnicalRequirementsExtractor
 import dspy
 
 

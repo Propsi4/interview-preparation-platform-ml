@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
 
 from alembic import context
 
-from ml.config.db import db_config
-from ml.db import models
+from src.config.db import db_config
+from src.db import models
 
 
 target_metadata = models.metadata

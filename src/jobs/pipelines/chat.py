@@ -7,19 +7,19 @@ from typing import AsyncGenerator
 import dspy
 from fastapi.responses import StreamingResponse
 
-from ml.agents.implementations.technical_interview import (
+from src.agents.implementations.technical_interview import (
     InterviewTurnRequestSchema,
     TechnicalInterviewAgent,
     TechnicalInterviewResponseSchema,
 )
-from ml.api.schemas import TechnicalInterviewChatRequestSchema
-from ml.config.openai import openai_config
-from ml.conversation_history.manager import ConversationHistoryManager
-from ml.core.logging import logger
-from ml.db.engine import connect_to_db
-from ml.db.repositories.chat_sessions import ChatSessionRepository
-from ml.db.repositories.vacancies import VacancyRepository
-from ml.utils import extract_request_cost, persist_chat_and_cost
+from src.api.schemas import TechnicalInterviewChatRequestSchema
+from src.config.openai import openai_config
+from src.conversation_history.manager import ConversationHistoryManager
+from src.core.logging import logger
+from src.db.engine import connect_to_db
+from src.db.repositories.chat_sessions import ChatSessionRepository
+from src.db.repositories.vacancies import VacancyRepository
+from src.utils import extract_request_cost, persist_chat_and_cost
 
 history_manager = ConversationHistoryManager()
 

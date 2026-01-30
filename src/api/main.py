@@ -5,19 +5,19 @@ from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
 import uvicorn
 
-from ml.api.routes.chat_history import router as chat_history_router
-from ml.api.routes.chat import router as chat_router
-from ml.api.routes.evaluation import router as evaluation_router
-from ml.api.routes.scrapers import router as scrapers_router
-from ml.api.routes.speech import router as speech_router
-from ml.api.schemas import StatusResponseSchema
-from ml.config.api import api_config
+from src.api.routes.chat_history import router as chat_history_router
+from src.api.routes.chat import router as chat_router
+from src.api.routes.evaluation import router as evaluation_router
+from src.api.routes.scrapers import router as scrapers_router
+from src.api.routes.speech import router as speech_router
+from src.api.schemas import StatusResponseSchema
+from src.config.api import api_config
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     """Lifespan function to check health at startup."""
-    from ml.conversation_history.manager import ConversationHistoryManager
+    from src.conversation_history.manager import ConversationHistoryManager
 
     manager = ConversationHistoryManager()
     services_health: List[bool] = [

@@ -9,7 +9,7 @@ from typing import Iterable, Optional
 from openai import OpenAI
 
 # Local imports
-from ml.config.openai import openai_config
+from src.config.openai import openai_config
 
 
 @lru_cache(maxsize=1)

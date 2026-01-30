@@ -1,11 +1,11 @@
 """Pipelines for scraper operations."""
 
-from ml.api.schemas import ProgressResponseSchema, ScrapeVacanciesRequestSchema, ScrapeVacanciesResponseSchema
-from ml.db.engine import connect_to_db
-from ml.db.models.search_query import SearchQueryModel
-from ml.db.repositories.search_queries import SearchQueryRepository
-from ml.db.repositories.vacancies import VacancyRepository
-from ml.jobs.celery_app import celery_app
+from src.api.schemas import ProgressResponseSchema, ScrapeVacanciesRequestSchema, ScrapeVacanciesResponseSchema
+from src.db.engine import connect_to_db
+from src.db.models.search_query import SearchQueryModel
+from src.db.repositories.search_queries import SearchQueryRepository
+from src.db.repositories.vacancies import VacancyRepository
+from src.jobs.celery_app import celery_app
 
 
 async def enqueue_vacancy_scrape(payload: ScrapeVacanciesRequestSchema) -> ScrapeVacanciesResponseSchema:

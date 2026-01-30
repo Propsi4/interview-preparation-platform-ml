@@ -4,10 +4,10 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 
-from ml.api.schemas import ProgressResponseSchema, ScrapeVacanciesRequestSchema, ScrapeVacanciesResponseSchema, SearchQueryResponseSchema
-from ml.db.engine import connect_to_db
-from ml.db.repositories.search_queries import SearchQueryRepository
-from ml.jobs.pipelines.scrapers import enqueue_vacancy_scrape, get_scrape_progress
+from src.api.schemas import ProgressResponseSchema, ScrapeVacanciesRequestSchema, ScrapeVacanciesResponseSchema, SearchQueryResponseSchema
+from src.db.engine import connect_to_db
+from src.db.repositories.search_queries import SearchQueryRepository
+from src.jobs.pipelines.scrapers import enqueue_vacancy_scrape, get_scrape_progress
 
 router = APIRouter()
 

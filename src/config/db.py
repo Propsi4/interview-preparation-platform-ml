@@ -104,7 +104,7 @@ class DatabaseSQLConfig(ConnectionConfig, BaseSettings):
         AsyncEngine
             Initialized async SQLAlchemy engine.
         """
-        from ml.db.engine import get_engine
+        from src.db.engine import get_engine
 
         return get_engine(self)
 

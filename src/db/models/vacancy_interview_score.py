@@ -8,11 +8,11 @@ from sqlalchemy import ForeignKey, Float, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 # Local imports
-from ml.db.models.base import TimestampedBase
+from src.db.models.base import TimestampedBase
 
 if TYPE_CHECKING:
-    from ml.db.models.search_query import SearchQueryModel
-    from ml.db.models.chat_session import ChatSessionModel
+    from src.db.models.search_query import SearchQueryModel
+    from src.db.models.chat_session import ChatSessionModel
 
 
 class VacancyInterviewScoreModel(TimestampedBase):

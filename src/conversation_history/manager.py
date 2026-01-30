@@ -9,15 +9,15 @@ from typing import List
 
 # Thirdparty imports
 from langchain_core.messages import BaseMessage, HumanMessage
-from ml.core.logging import logger
+from src.core.logging import logger
 from sqlalchemy import select
 
 # Local folder imports
-from ml.db.engine import connect_to_db
-from ml.db.models.chat_session import ChatSessionModel
-from ml.db.models.chat_message import ChatMessageModel
-from ml.db.repositories.chat_messages import ChatMessageRepository
-from ml.db.repositories.chat_sessions import ChatSessionRepository
+from src.db.engine import connect_to_db
+from src.db.models.chat_session import ChatSessionModel
+from src.db.models.chat_message import ChatMessageModel
+from src.db.repositories.chat_messages import ChatMessageRepository
+from src.db.repositories.chat_sessions import ChatSessionRepository
 from .utils import dicts_to_langchain_messages, langchain_to_dict
 from .schemas import ChatSessionOverviewSchema, ChatMessageSchema
 

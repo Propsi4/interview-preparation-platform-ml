@@ -5,15 +5,15 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 # Local imports
-from ml.agents.implementations.technical_interview import TechnicalInterviewResponseSchema
-from ml.api.schemas import TechnicalInterviewChatRequestSchema
-from ml.jobs.pipelines.chat import (
+from src.agents.implementations.technical_interview import TechnicalInterviewResponseSchema
+from src.api.schemas import TechnicalInterviewChatRequestSchema
+from src.jobs.pipelines.chat import (
     InterviewAlreadyFinishedError,
     ensure_interview_not_finished,
     run_technical_interview,
     stream_technical_interview,
 )
-from ml.core.logging import logger
+from src.core.logging import logger
 router = APIRouter()
 
 

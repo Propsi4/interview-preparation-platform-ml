@@ -1,14 +1,14 @@
 """Shared schema exports for cross-domain use."""
 
-from ml.api.schemas import (
+from src.api.schemas import (
     HealthResponseSchema,
     ProgressResponseSchema,
     ScrapeVacanciesRequestSchema,
     ScrapeVacanciesResponseSchema,
 )
-from ml.conversation_history.schemas import ChatMessageSchema, ChatSessionOverviewSchema
-from ml.scrapers.schemas.vacancy import VacanciesOverviewSchema, VacancySchema
-from ml.agents.implementations.technical_interview.schemas import (
+from src.conversation_history.schemas import ChatMessageSchema, ChatSessionOverviewSchema
+from src.scrapers.schemas.vacancy import VacanciesOverviewSchema, VacancySchema
+from src.agents.implementations.technical_interview.schemas import (
     TechnicalInterviewResponseSchema,
     InterviewTurnRequestSchema,
 )

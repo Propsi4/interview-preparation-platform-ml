@@ -8,7 +8,7 @@ from typing import Any, Generic, Mapping, Sequence, TypeVar
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ml.db.models.base import Base
+from src.db.models.base import Base
 
 TModel = TypeVar("TModel", bound=Base)
 

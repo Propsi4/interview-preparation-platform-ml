@@ -4,11 +4,11 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 
-from ml.api.schemas import EvaluationDispatchRequestSchema, EvaluationDispatchResponseSchema, VacancyInterviewScoreResponseSchema
-from ml.db.engine import connect_to_db
-from ml.db.repositories.chat_sessions import ChatSessionRepository
-from ml.db.repositories.vacancy_interview_scores import VacancyInterviewScoreRepository
-from ml.jobs.pipelines.evaluation import dispatch_vacancy_assessments
+from src.api.schemas import EvaluationDispatchRequestSchema, EvaluationDispatchResponseSchema, VacancyInterviewScoreResponseSchema
+from src.db.engine import connect_to_db
+from src.db.repositories.chat_sessions import ChatSessionRepository
+from src.db.repositories.vacancy_interview_scores import VacancyInterviewScoreRepository
+from src.jobs.pipelines.evaluation import dispatch_vacancy_assessments
 
 router = APIRouter()
 

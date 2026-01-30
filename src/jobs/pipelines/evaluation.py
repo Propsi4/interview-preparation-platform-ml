@@ -4,12 +4,12 @@ from typing import List
 
 from langchain_core.messages import BaseMessage
 
-from ml.conversation_history.manager import ConversationHistoryManager
-from ml.conversation_history.utils import langchain_messages_to_dicts
-from ml.core.logging import logger
-from ml.db.engine import connect_to_db
-from ml.db.repositories.vacancies import VacancyRepository
-from ml.jobs.celery_app import celery_app
+from src.conversation_history.manager import ConversationHistoryManager
+from src.conversation_history.utils import langchain_messages_to_dicts
+from src.core.logging import logger
+from src.db.engine import connect_to_db
+from src.db.repositories.vacancies import VacancyRepository
+from src.jobs.celery_app import celery_app
 
 history_manager = ConversationHistoryManager()
 

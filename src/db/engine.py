@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
-from ml.config.db import DatabaseSQLConfig, db_config
+from src.config.db import DatabaseSQLConfig, db_config
 
 
 def get_engine(config: DatabaseSQLConfig | None = None) -> AsyncEngine:
