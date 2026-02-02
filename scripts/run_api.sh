@@ -1,1 +1,1 @@
-python ml/api/main.py
+python -m src.api.main
