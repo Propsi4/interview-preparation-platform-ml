@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models.search_query import SearchQueryModel
 from src.db.repositories.base import BaseRepository
 from src.db.repositories.vacancies import VacancyRepository
+from src.db.models.vacancies import VacancyModel
+from src.db.models.vacancy_interview_score import VacancyInterviewScoreModel
+from src.db.models.chat_session import ChatSessionModel
 
 
 class SearchQueryRepository(BaseRepository[SearchQueryModel]):
@@ -77,11 +81,6 @@ class SearchQueryRepository(BaseRepository[SearchQueryModel]):
         bool
             True if the search query was deleted.
         """
-        from sqlalchemy import delete
-        from src.db.models.vacancies import VacancyModel
-        from src.db.models.vacancy_interview_score import VacancyInterviewScoreModel
-        from src.db.models.chat_session import ChatSessionModel
-
         # Delete related records manually to ensure correctness regardless of DB cascade setup
         await self._session.execute(delete(VacancyModel).where(VacancyModel.search_query_id == search_query_id))
         await self._session.execute(
