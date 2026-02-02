@@ -7,7 +7,7 @@ import tempfile
 from typing import Any
 
 # Thirdparty imports
-from fastapi import APIRouter, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
@@ -121,6 +121,7 @@ def _resolve_tts_file_suffix(output_format: str) -> str:
 @router.post("/transcribe", response_model=SpeechTranscriptionResponseSchema)
 async def transcribe_speech_audio(
     audio_file: UploadFile = File(...),
+    language: str | None = Form(None),
 ) -> SpeechTranscriptionResponseSchema:
     """
     Transcribe an uploaded audio file using OpenAI Whisper.
@@ -129,6 +130,8 @@ async def transcribe_speech_audio(
     ----------
     audio_file : UploadFile
         Uploaded audio file to transcribe.
+    language : str | None
+        Optional ISO-639 language code.
 
     Returns
     -------
@@ -137,7 +140,11 @@ async def transcribe_speech_audio(
     """
     try:
         audio_bytes = await audio_file.read()
-        text = transcribe_audio(audio_bytes=audio_bytes, file_name=audio_file.filename or "speech_input.wav")
+        text = transcribe_audio(
+            audio_bytes=audio_bytes,
+            file_name=audio_file.filename or "speech_input.wav",
+            language_code=language,
+        )
         return SpeechTranscriptionResponseSchema(text=text)
     except Exception as exc:
         logger.error(f"Failed to transcribe audio: {exc}")
