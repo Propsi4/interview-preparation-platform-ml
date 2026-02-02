@@ -20,7 +20,7 @@ class VacancyInterviewScoreModel(TimestampedBase):
 
     __tablename__ = "vacancy_interview_scores"
 
-    search_query_id: Mapped[int] = mapped_column(ForeignKey("search_queries.id"), nullable=False)
+    search_query_id: Mapped[int] = mapped_column(ForeignKey("search_queries.id", ondelete="CASCADE"), nullable=False)
     chat_session_id: Mapped[str] = mapped_column(
         String(100),
         ForeignKey("chat_sessions.session_id", ondelete="CASCADE"),

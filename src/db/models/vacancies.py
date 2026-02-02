@@ -11,7 +11,7 @@ class VacancyModel(TimestampedBase):
 
     __tablename__ = "vacancies"
 
-    search_query_id: Mapped[int] = mapped_column(ForeignKey("search_queries.id"), nullable=False)
+    search_query_id: Mapped[int] = mapped_column(ForeignKey("search_queries.id", ondelete="CASCADE"), nullable=False)
     title: Mapped[str | None] = mapped_column(Text, nullable=True)
     company: Mapped[str | None] = mapped_column(Text, nullable=True)
     location: Mapped[str | None] = mapped_column(Text, nullable=True)

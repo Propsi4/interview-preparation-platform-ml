@@ -74,3 +74,20 @@ async def list_search_queries() -> List[SearchQueryResponseSchema]:
         )
         for query in queries
     ]
+
+
+@router.delete("/queries/{search_query_id}", status_code=204)
+async def delete_search_query(search_query_id: int) -> None:
+    """
+    Delete a search query.
+
+    Parameters
+    ----------
+    search_query_id : int
+        Search query identifier.
+    """
+    async with connect_to_db() as session:
+        repo = SearchQueryRepository(session)
+        deleted = await repo.delete(search_query_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Search query not found")
