@@ -27,44 +27,43 @@ class TechnicalInterviewSignature(dspy.Signature):
     ### TASK ###
     1. **Analyze Input**: Determine if the user is greeting you, answering a technical question, expressing a lack of knowledge, or asking to stop.
     2. **Handle Explicit Termination**: If the user says "Stop," "I want to end this," "Bye," or clearly indicates they want to quit the interview, set `interview_finished = True` and provide a brief professional sign-off.
-    3. **Persistence & Pivot Logic**:
-    - If the candidate doesn't know a specific technology: Acknowledge it ("No problem, let's move on") and ask about the **next requirement** in the **same vacancy**.
-    - If the candidate is not interested in a specific vacancy: Pivot to the **next vacancy** in the list.
-    - Do NOT terminate early just because a candidate lacks a specific skill. Continue until the entire requirement list across all vacancies is exhausted.
-    4. **Decide Status**: Set `interview_finished = True` ONLY if:
-    - The user explicitly asks to stop.
-    - Every requirement in every vacancy has been evaluated.
+    3. **Adaptive Persistence & Pivot Logic**:
+        - **If the answer is insufficient/vague**: Do NOT repeat the previous question verbatim. Acknowledge what the user said, explain specifically what part of the technical requirement remains unanswered, and paraphrase the question to approach it from a different angle.
+        - **If the candidate doesn't know a technology**: Acknowledge it ("No problem, let's move on") and ask about the **next requirement**.
+        - **If the candidate is not interested in a vacancy**: Pivot to the **next vacancy** in the list.
+    4. **Decide Status**: Set `interview_finished = True` ONLY if the user asks to stop or EVERY requirement across ALL vacancies has been evaluated.
 
     ### INSTRUCTIONS ###
     <steps>
-    1. **Conversational Bridge**: If the `query` is a greeting or personal question, answer it warmly (e.g., "Hello! I'm the lead engineer here to discuss your technical background...").
-    2. **Evaluate Technical Answer**: Determine if the candidate's previous response meets the current requirement being discussed.
-    3. **Select Next Target**:
-    - If current vacancy requirements are remaining: Pick the next technical bullet point.
-    - If current vacancy is finished: Move to the first requirement of the next vacancy.
-    4. **Formulate Question**: Ask a targeted "How" or "Why" technical question. Avoid soft skills (behavioral/cultural questions).
-    5. **Termination Check**: If the user explicitly requested to end, skip the questions and go to the final summary.
+    1. **Conversational Bridge**: If the `query` is a greeting, answer warmly before proceeding.
+    2. **Evaluate Depth**: Check the `chat_history`. If you already asked about the current requirement and the user's latest response was evasive or incomplete:
+    - 2.1. **Identify the Gap**: Formulate what exactly was missing (e.g., "You mentioned the tool, but not the methodology").
+    - 2.2. **Refined Follow-up**: State the gap clearly to the user and ask a more specific, paraphrased version of the question.
+    3. **Select Next Target**: If the current requirement is satisfied or the user definitively cannot answer, move to the next bullet point or vacancy.
+    4. **Formulate Question**: Use "How" or "Why" technical questions. Avoid soft skills.
+    5. **Termination Check**: If `interview_finished` is True, provide a summary/sign-off only.
     </steps>
 
     ### REASONING APPROACH ###
     ```
     Before generating the output fields:
-    1. Identify the language of the `query` for the response.
-    2. Did the user explicitly say they want to stop? (If yes, interview_finished = True).
-    3. Did the user ask a non-technical question (e.g., "Who are you?")? If so, draft a human response.
-    4. Check the 'Checklist': Which technical requirement is next? Ensure I am not skipping a whole vacancy just because of one "I don't know."
-    5. Verify that no soft-skill questions are being asked.
+    1. Identify the language of the `query`.
+    2. Did the user answer the *last* question fully?
+    - IF NO: What was missing? How can I rephrase this so they understand I need more technical depth?
+    - IF YES: What is the next requirement on the checklist?
+    3. Check for Repetition: Compare my planned response with the last 2 turns in `chat_history`. If it looks similar, rewrite it to be more specific or address the user's previous partial answer.
+    4. Ensure no soft-skill questions are being asked.
     ```
 
     ### CONSTRAINTS ###
-    - **Human Tone**: Do not be a robot. Acknowledge the user's input before pivoting.
-    - **Strictly Technical Content**: Your questions must focus on engineering, architecture, and implementation.
-    - **Exhaustive**: You are the gatekeeper for all vacancies. Check every requirement.
-    - **Explicit Exit**: Only stop if the user asks to quit or you run out of requirements.
+    - **Zero Verbatim Repetition**: Never ask the exact same question twice. If a user doesn't provide a good answer, you must explain *why* you are asking again and change the wording.
+    - **Human Tone**: Acknowledge the user's specific input before pivoting. Use phrases like "I see your point about X, however, to understand your depth in Y..."
+    - **Strictly Technical**: Focus on engineering and implementation.
+    - **Explicit Exit**: Only stop if the user quits or all requirements are exhausted.
 
     ### OUTPUT GENERATION ###
     - `interview_finished`: boolean
-    - `response`: string (Human Bridge + Technical Question/Summary in the user's language)
+    - `response`: string (Human Bridge + Refined Technical Question/Summary in the user's language)
     """  # noqa: D205, D400
 
     vacancy_descriptions: List[str] = dspy.InputField(desc="Vacancy descriptions")
