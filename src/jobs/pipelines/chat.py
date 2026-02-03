@@ -13,8 +13,10 @@ from src.agents.implementations.technical_interview import (
     TechnicalInterviewResponseSchema,
 )
 from src.api.schemas import TechnicalInterviewChatRequestSchema
+from src.config.app import app_config
 from src.config.openai import openai_config
 from src.conversation_history.manager import ConversationHistoryManager
+from src.conversation_history.summarizer import ChatHistorySummarizer
 from src.core.logging import logger
 from src.db.engine import connect_to_db
 from src.db.repositories.chat_sessions import ChatSessionRepository
@@ -122,6 +124,11 @@ async def _build_request_payload(
         Request payload including chat history.
     """
     chat_history = await history_manager.get_messages_for_session(session_id)
+
+    # Summarize history if needed
+    summarizer = ChatHistorySummarizer(max_history_len=app_config.MAX_CHAT_HISTORY_LEN)
+    chat_history = summarizer.summarize(chat_history)
+
     return InterviewTurnRequestSchema(
         search_query_id=payload.search_query_id,
         chat_history=chat_history,
