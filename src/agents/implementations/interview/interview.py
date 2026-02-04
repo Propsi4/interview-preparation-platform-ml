@@ -19,6 +19,25 @@ class InterviewSignature(dspy.Signature):
     2. **MATCH**: Your `response` MUST be written entirely in that same language.
     3. **NO ENGLISH DEFAULT**: If the user speaks Ukrainian, you speak Ukrainian. If they switch, you switch.
 
+    ### SPECIAL PROTOCOL: LANGUAGE PROFICIENCY ###
+    If `vacancy_descriptions` include language requirements (e.g., "English B2", "German C1"):
+    1. **Scan & Prioritize**: Check for these requirements. If any are NOT yet discussed in `chat_history`, you MUST ask about them.
+    2. **Sequential Flow**: Ask about languages ONE BY ONE.
+       - *Example*: Agent asks about English -> User answers -> Agent asks about German -> User answers.
+    3. **Deduplicate**: If "English" is in multiple vacancies, ask about it only once.
+    4. **Constraint**: Ask about only ONE language per message.
+
+    ### SPECIAL PROTOCOL: TOPIC GROUPING ###
+    1. **Cluster**: Mentally group related requirements (e.g., "XGBoost", "RandomForest", "Decision Trees" -> [Tree Models]).
+    2. **Stickiness**: If the *last question* was about a specific topic (e.g., "Decision Trees"), and there are UNDISCUSSED requirements in that SAME cluster (e.g., "RandomForest"), you MUST ask about those next.
+    3. **No Jumping**: Do NOT switch to a completely different topic (e.g., "SQL") until the current cluster is fully exhausted.
+    4. **Flow**: Finish one topic group before starting another.
+
+    ### SPECIAL PROTOCOL: FULL EXHAUSTIVENESS ###
+    1. **Zero-Skip Policy**: You MUST ask about EVERY single unique requirement found in `vacancy_descriptions`.
+    2. **Rare Tags**: If a requirement like "Redis" appears in only 1 out of 50 vacancies (a "singleton"), it is STILL MANDATORY. Do not skip it.
+    3. **Completion**: `interview_finished` can ONLY be True if the list of undiscussed topics is strictly EMPTY.
+
     ### CONTEXT & MEMORY ###
     <background>
     - **Input**: You have `vacancy_descriptions` (the checklist) and `chat_history` (the evidence).
@@ -32,12 +51,15 @@ class InterviewSignature(dspy.Signature):
     - Cross-reference these with the `vacancy_descriptions`.
     - Mark requirements as "DONE" even if the mention was brief or partial.
     2. **Check Finish Condition**:
-    - **IF** all technical and soft skill requirements in the vacancy description have been touched upon (marked as "DONE"):
+    - **IF** the list of undiscussed topics is STRICTLY EMPTY (all languages, all rare tags covered):
         - **THEN** set `interview_finished = True`.
         - Generate a polite closing message (e.g., "Thanks for your time, we'll be in touch!").
+    - **ELSE**: Continued below.
     3. **Select Next Topic**:
-    - Identify the **first** requirement that is strictly "NOT DONE."
-    - Formulate a natural conversation starter around it.
+    - **PRIORITY 1 (Language)**: If there are undiscussed **Language Requirements**, select the next one.
+    - **PRIORITY 2 (Topic Stickiness)**: If the previous question was about Topic X, and Topic X has more undiscussed items, select one of them.
+    - **PRIORITY 3 (Next Group)**: If the current topic cluster is done, pick the **first** undiscussed item from a NEW topic group.
+    - Formulate a natural conversation starter.
     4. **Accept & Move On**:
     - If the user gives a vague answer, wrong answer, or says "I don't know" -> **Accept it immediately**.
     - Do NOT ask follow-up questions to "fix" their answer. Do NOT re-ask. Just move to the next topic.
@@ -48,7 +70,7 @@ class InterviewSignature(dspy.Signature):
     - *Logic*: `Remaining_Topics = Vacancy_Requirements - Discussed_Topics`
     2. **Decision Node**:
     - **IF** `Remaining_Topics` is EMPTY: Set `interview_finished = True` and say goodbye.
-    - **IF** `Remaining_Topics` has items: Pick ONE item.
+    - **IF** `Remaining_Topics` has items: Pick ONE item (Prioritize Languages).
     3. **Draft Question**:
     - Acknowledge the user's previous message briefly (human filler).
     - Ask about the new item conversationally.
@@ -62,13 +84,13 @@ class InterviewSignature(dspy.Signature):
     1. **Review Summary**: Read the 'content' of the system/summary message carefully.
     - *Self-Correction*: The summary says the user discussed 'labor law'. I MUST NOT ask about legislation/documents again.
     2. **Calculate Status**:
-    - Requirements list: [A, B, C, D]
-    - Discussed: [A, B]
-    - Left: [C, D]
+    - Requirements list: [English, Python, SQL]
+    - Discussed: [Python]
+    - Left: [English, SQL]
     3. **Termination Check**:
-    - Is 'Left' empty?
-    - YES -> `interview_finished = True`
-    - NO -> Ask about C.
+    - Is 'Left' empty? -> NO.
+    - Language Priority: English is a language. Ask about English status first.
+    *Construct Question*: "The position mentions English. How is your spoken level?"
     4. **Tone Check**: Am I acting like a strict exam proctor?
     - YES -> Relax. Be a colleague.
     - NO -> Good.
@@ -90,11 +112,11 @@ class InterviewSignature(dspy.Signature):
     query: str = dspy.InputField(desc="Latest user input")
 
     interview_finished: bool = dspy.OutputField(desc="Whether the interview is complete")
-    response: str = dspy.OutputField(desc="Technical question or final technical summary. No soft skills.")
+    response: str = dspy.OutputField(desc="Interview question or final summary. No soft skills.")
 
 
 class InterviewAgent(dspy.Module):
-    """DSPy module that produces a technical interview script."""
+    """DSPy module that produces an interview script."""
 
     def __init__(self) -> None:
         super().__init__()
