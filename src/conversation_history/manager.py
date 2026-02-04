@@ -52,6 +52,9 @@ class ConversationHistoryManager:
                 message_repo = ChatMessageRepository(session)
                 messages = await message_repo.list_by_session_id(session_id)
 
+                # Sort by id
+                messages.sort(key=lambda x: x.id)
+
                 # Convert to dictionaries then to LangChain messages
                 message_dicts = [{"role": msg.role, "content": msg.content} for msg in messages]
                 langchain_messages = dicts_to_langchain_messages(message_dicts)
@@ -93,6 +96,9 @@ class ConversationHistoryManager:
             async with connect_to_db() as session:
                 message_repo = ChatMessageRepository(session)
                 messages = await message_repo.list_by_session_id(session_id)
+
+                # Sort by id
+                messages.sort(key=lambda x: x.id)
 
                 if filter_tool_calls:
                     messages = [msg for msg in messages if msg.role != "tool"]

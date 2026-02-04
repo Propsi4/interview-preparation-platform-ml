@@ -16,7 +16,7 @@ from src.api.schemas import TechnicalInterviewChatRequestSchema
 from src.config.app import app_config
 from src.config.openai import openai_config
 from src.conversation_history.manager import ConversationHistoryManager
-from src.conversation_history.summarizer import ChatHistorySummarizer
+from src.agents.implementations.chat_summarizer.summarizer import ChatHistorySummarizer
 from src.core.logging import logger
 from src.db.engine import connect_to_db
 from src.db.repositories.chat_sessions import ChatSessionRepository
