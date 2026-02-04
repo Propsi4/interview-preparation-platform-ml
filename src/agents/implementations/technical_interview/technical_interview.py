@@ -50,7 +50,7 @@ class TechnicalInterviewSignature(dspy.Signature):
     ### REASONING APPROACH ###
     ```
     Before generating the output fields:
-    1. **Language Check**: Match the query language.
+    1. **Language Check**: Match the `user's query language`, do not use `context`'s language.
     2. **Attempt Counter**: "How many times have I asked about [Specific Topic]? Is this attempt 1, 2, or 3?"
     3. **Gap Identification**: "What exactly was missing? (e.g., 'You described the goal but not the specific implementation/tool')."
     4. **Redundancy Check**: "Is this question worded differently than all previous instances of this topic in the chat?"
