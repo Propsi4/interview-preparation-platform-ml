@@ -158,7 +158,6 @@ async def run_technical_interview(
     start_time = time.time()
     llm_model, llm_temperature, additional_llm_kwargs = _resolve_llm_config(payload)
     vacancy_descriptions = await _load_vacancy_descriptions(payload.search_query_id)
-    request = await _build_request_payload(session_id, payload)
     agent = TechnicalInterviewAgent()
 
     lm = dspy.LM(
@@ -168,6 +167,7 @@ async def run_technical_interview(
     )
 
     with dspy.context(lm=lm, track_usage=True):
+        request = await _build_request_payload(session_id, payload, lm)
         start_index = len(getattr(lm, "history", []) or [])
         prediction = agent(
             vacancy_descriptions=vacancy_descriptions,
@@ -256,7 +256,6 @@ async def iter_technical_interview_events(
         first_token_received = False
         llm_model, llm_temperature, additional_llm_kwargs = _resolve_llm_config(payload)
         vacancy_descriptions = await _load_vacancy_descriptions(payload.search_query_id)
-        request = await _build_request_payload(session_id, payload)
         agent = TechnicalInterviewAgent()
 
         lm = dspy.LM(
@@ -266,6 +265,7 @@ async def iter_technical_interview_events(
         )
 
         with dspy.context(lm=lm, track_usage=True):
+            request = await _build_request_payload(session_id, payload)
             start_index = len(getattr(lm, "history", []) or [])
             stream_agent = dspy.streamify(
                 agent,
