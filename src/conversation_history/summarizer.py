@@ -99,9 +99,6 @@ class ChatHistorySummarizer:
         to_summarize = history[:cutoff_index]
         recent_messages = history[cutoff_index:]
 
-        # If existing history already has a summary (SystemMessage at index 0), include it in the input to be merged?
-        # Yes, we should serialize it.
-
         serialized_context = self._serialize_messages(to_summarize)
 
         logger.info(f"Summarizing {len(to_summarize)} old messages. Keeping {len(recent_messages)} recent ones.")
