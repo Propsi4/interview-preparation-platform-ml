@@ -45,6 +45,7 @@ class VacancyInterviewScoreRepository(BaseRepository[VacancyInterviewScoreModel]
         stmt = (
             select(self.model)
             .options(joinedload(self.model.vacancy))
+            .options(joinedload(self.model.search_query))
             .where(self.model.id == entity_id)
         )
         result = await self._session.execute(stmt)
@@ -67,6 +68,7 @@ class VacancyInterviewScoreRepository(BaseRepository[VacancyInterviewScoreModel]
         stmt = (
             select(self.model)
             .options(joinedload(self.model.vacancy))
+            .options(joinedload(self.model.search_query))
             .filter_by(**filters)
         )
         result = await self._session.execute(stmt)

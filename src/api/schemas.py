@@ -185,6 +185,7 @@ class VacancyInterviewScoreResponseSchema(BaseModel):
 
     id: int = Field(..., description="Score record identifier")
     search_query_id: int = Field(..., description="Search query identifier")
+    search_query_text: str = Field(..., description="Search query text")
     chat_session_id: str = Field(..., description="Chat session identifier")
     score: float = Field(..., ge=0.0, le=1.0, description="Normalized assessment score")
     strong_sides: Optional[str] = Field(default=None, description="Highlighted strong sides of the interview")
@@ -203,6 +204,7 @@ class VacancyInterviewScoreResponseSchema(BaseModel):
             "example": {
                 "id": 1,
                 "search_query_id": 42,
+                "search_query_text": "Data Scientist",
                 "chat_session_id": "session_123",
                 "score": 0.7,
                 "strong_sides": "Clear communication and relevant examples.",

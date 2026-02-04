@@ -78,6 +78,7 @@ async def list_evaluation_results_for_session(session_id: str) -> List[VacancyIn
         VacancyInterviewScoreResponseSchema(
             id=score.id,
             search_query_id=score.search_query_id,
+            search_query_text=score.search_query.query,
             chat_session_id=score.chat_session_id,
             score=score.score,
             strong_sides=score.strong_sides,
