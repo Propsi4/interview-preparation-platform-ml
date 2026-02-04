@@ -90,7 +90,7 @@ class ChatHistorySummarizer:
         # If len > max_history_len (e.g., 20)
         # Summarize the first (len - keep_recent) messages.
         # Keep the last `keep_recent` messages raw.
-        keep_recent_count = max(self.max_history_len // 2, 2)
+        keep_recent_count = min(len(history), self.max_history_len)
         cutoff_index = len(history) - keep_recent_count
 
         if cutoff_index <= 0:
