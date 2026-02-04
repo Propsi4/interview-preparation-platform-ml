@@ -23,7 +23,7 @@ from src.api.schemas import (
 )
 from src.config.openai import openai_config
 from src.core.logging import logger
-from src.jobs.pipelines.chat import ensure_interview_not_finished, iter_technical_interview_events
+from src.jobs.pipelines.chat import ensure_interview_not_finished, iter_interview_events
 from src.services.openai_speech import stream_tts_audio, transcribe_audio
 
 router = APIRouter()
@@ -244,7 +244,7 @@ async def speech_stream(websocket: WebSocket) -> None:
                     query=transcript,
                 )
                 response_text = ""
-                async for event in iter_technical_interview_events(
+                async for event in iter_interview_events(
                     session_id=start_frame.session_id,
                     payload=payload,
                 ):

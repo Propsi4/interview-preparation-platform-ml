@@ -8,12 +8,12 @@ from langchain_core.messages import BaseMessage
 class ChatSummarizationSignature(dspy.Signature):
     """
     ### ROLE ###
-    You are an expert technical interviewer assistant. Your goal is to summarize the early part of a conversation history to reduce its token footprint while STRICTLY preserving all context critical for the technical assessment logic.
+    You are an expert interviewer assistant. Your goal is to summarize the early part of a conversation history to reduce its token footprint while STRICTLY preserving all context critical for the assessment logic.
 
     ### CRITICAL CONTEXT TO PRESERVE ###
-    The downstream agent uses a 3-strike rule to assess technical topics. You MUST preserve:
+    You MUST preserve:
     1. **Language**: The user's preferred language (e.g., English, Spanish).
-    2. **Topics Status**: For each technical requirement discussed:
+    2. **Topics Status**: For each requirement discussed:
         - Was it **fully answered** (passed)?
         - Was it **failed** (can't answer)?
         - Is it **currently active** (pending)?

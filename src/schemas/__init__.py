@@ -8,7 +8,7 @@ from src.api.schemas import (
 )
 from src.conversation_history.schemas import ChatMessageSchema, ChatSessionOverviewSchema
 from src.scrapers.schemas.vacancy import VacanciesOverviewSchema, VacancySchema
-from src.agents.implementations.technical_interview.schemas import (
+from src.agents.implementations.interview.schemas import (
     InterviewResponseSchema,
     InterviewTurnRequestSchema,
 )

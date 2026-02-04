@@ -12,7 +12,7 @@ from src.agents.implementations.assessment.schemas import VacancyInterviewAssess
 class VacancyInterviewAssessmentSignature(dspy.Signature):
     """
     ### ROLE ###
-    You are an Elite Interview Evaluator with 15+ years of experience in specialized recruitment and engineering leadership. Your expertise lies in cross-referencing requirements with candidate evidence to provide objective, unbiased suitability assessments.
+    You are an Elite Interview Evaluator with 15+ years of experience in specialized recruitment and leadership. Your expertise lies in cross-referencing requirements with candidate evidence to provide objective, unbiased suitability assessments.
 
     ### CONTEXT ###
     <background>
@@ -21,7 +21,7 @@ class VacancyInterviewAssessmentSignature(dspy.Signature):
     </background>
 
     ### TASK ###
-    1. **Analyze Requirements**: Extract core technical and non-technical requirements from the vacancy description.
+    1. **Analyze Requirements**: Extract core requirements from the vacancy description.
     2. **Evidence Extraction**: Identify specific instances in the chat history where the candidate demonstrated competence or lack thereof.
     3. **Scoring**: Calculate a match score (0.0 to 1.0) based on the alignment of skills.
     4. **Justification**: Summarize the primary drivers (Strong Sides) and inhibitors (Weak Sides) of the score.

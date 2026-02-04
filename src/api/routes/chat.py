@@ -38,8 +38,8 @@ async def chat_with_interview_agent(
     except InterviewAlreadyFinishedError as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
     except Exception as e:
-        logger.error(f"Failed to run technical interview: {e}")
-        raise HTTPException(status_code=500, detail="Failed to run technical interview") from e
+        logger.error(f"Failed to run interview: {e}")
+        raise HTTPException(status_code=500, detail="Failed to run interview") from e
 
 
 @router.post("/interview/{session_id}/stream")
@@ -68,5 +68,5 @@ async def chat_with_interview_agent_stream(
     except InterviewAlreadyFinishedError as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
     except Exception as e:
-        logger.error(f"Failed to stream technical interview: {e}")
-        raise HTTPException(status_code=500, detail="Failed to stream technical interview") from e
+        logger.error(f"Failed to stream interview: {e}")
+        raise HTTPException(status_code=500, detail="Failed to stream interview") from e

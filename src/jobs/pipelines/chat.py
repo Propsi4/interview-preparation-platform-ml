@@ -1,4 +1,4 @@
-"""Pipelines for technical interview chat endpoints."""
+"""Pipelines for interview chat endpoints."""
 
 import json
 import time
@@ -87,7 +87,7 @@ async def _load_vacancy_descriptions(search_query_id: int) -> list[str]:
     """
     Load vacancy descriptions for a search query.
 
-    Uses processed technical requirements when available.
+    Uses processed requirements when available.
 
     Parameters
     ----------
@@ -141,7 +141,7 @@ async def run_interview(
     payload: InterviewChatRequestSchema,
 ) -> InterviewResponseSchema:
     """
-    Run a technical interview turn and persist chat history.
+    Run an interview turn and persist chat history.
 
     Parameters
     ----------
@@ -167,7 +167,7 @@ async def run_interview(
     )
 
     with dspy.context(lm=lm, track_usage=True):
-        request = await _build_request_payload(session_id, payload, lm)
+        request = await _build_request_payload(session_id, payload)
         start_index = len(getattr(lm, "history", []) or [])
         prediction = agent(
             vacancy_descriptions=vacancy_descriptions,
@@ -177,7 +177,7 @@ async def run_interview(
         request_cost = extract_request_cost(lm, start_index)
         logger.debug(f"Request cost: {request_cost}")
     total_time = time.time() - start_time
-    logger.debug(f"Technical interview response time: {total_time:.4f}s")
+    logger.debug(f"Interview response time: {total_time:.4f}s")
 
     response = InterviewResponseSchema(
         interview_finished=getattr(prediction, "interview_finished", False),
@@ -201,7 +201,7 @@ def stream_interview(
     payload: InterviewChatRequestSchema,
 ) -> StreamingResponse:
     """
-    Run a technical interview turn and stream the response.
+    Run an interview turn and stream the response.
 
     Parameters
     ----------
@@ -217,7 +217,7 @@ def stream_interview(
     """
 
     async def event_stream() -> AsyncGenerator[str, None]:
-        async for event in iter_technical_interview_events(session_id=session_id, payload=payload):
+        async for event in iter_interview_events(session_id=session_id, payload=payload):
             yield f"data: {json.dumps(event)}\n\n"
 
     return StreamingResponse(
@@ -232,12 +232,12 @@ def stream_interview(
     )
 
 
-async def iter_technical_interview_events(
+async def iter_interview_events(
     session_id: str,
     payload: InterviewChatRequestSchema,
 ) -> AsyncGenerator[dict, None]:
     """
-    Stream technical interview events as structured dictionaries.
+    Stream interview events as structured dictionaries.
 
     Parameters
     ----------
@@ -310,7 +310,7 @@ async def iter_technical_interview_events(
                     }
                     yield complete_event
                     total_time = time.time() - start_time
-                    logger.debug(f"Technical interview stream total time: {total_time:.4f}s")
+                    logger.debug(f"Interview stream total time: {total_time:.4f}s")
 
                     # FIXME: Price is not calculated when using streamify
                     request_cost = extract_request_cost(lm, start_index)
@@ -324,7 +324,7 @@ async def iter_technical_interview_events(
                         interview_finished=response_schema.interview_finished,
                     )
     except Exception as e:
-        logger.error(f"Error running technical interview stream for session {session_id}: {e}")
+        logger.error(f"Error running interview stream for session {session_id}: {e}")
         error_event = {
             "type": "error",
             "status": "error",

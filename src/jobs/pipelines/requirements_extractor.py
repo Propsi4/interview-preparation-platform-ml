@@ -1,16 +1,16 @@
-"""Pipeline for extracting technical requirements from vacancy descriptions."""
+"""Pipeline for extracting requirements from vacancy descriptions."""
 
 from src.config.openai import openai_config
-from src.agents.implementations.tech_requirements_extractor.extractor import TechnicalRequirementsExtractor
+from src.agents.implementations.requirements_extractor.extractor import RequirementsExtractor
 import dspy
 
 
-def extract_technical_requirements(vacancy_description: str) -> str:
+def extract_vacancy_requirements(vacancy_description: str) -> str:
     """
-    Extract technical requirements from a vacancy description.
+    Extract requirements from a vacancy description.
 
     Creates a DSPy module configured with the current LLM settings
-    and returns a cleaned summary of technical requirements.
+    and returns a cleaned summary of requirements.
 
     Parameters
     ----------
@@ -20,7 +20,7 @@ def extract_technical_requirements(vacancy_description: str) -> str:
     Returns
     -------
     str
-        Processed description containing only technical requirements.
+        Processed description containing only requirements.
     """
     if not vacancy_description:
         return ""
@@ -37,7 +37,7 @@ def extract_technical_requirements(vacancy_description: str) -> str:
         **lm_kwargs,
     )
 
-    extractor = TechnicalRequirementsExtractor()
+    extractor = RequirementsExtractor()
     with dspy.context(lm=lm):
         prediction = extractor(vacancy_description=vacancy_description)
 

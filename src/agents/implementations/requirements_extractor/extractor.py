@@ -1,4 +1,4 @@
-"""DSPy-based extractor for technical requirements from vacancy descriptions."""
+"""DSPy-based extractor for requirements from vacancy descriptions."""
 
 # Thirdparty imports
 import dspy
@@ -6,7 +6,7 @@ from dspy.utils.asyncify import asyncify
 
 
 class RequirementsSignature(dspy.Signature):
-    """Extract requirements from a vacancy description (including Languages, technical skills, etc.)."""
+    """Extract requirements from a vacancy description (including Languages, skills, etc.)."""
 
     vacancy_description: str = dspy.InputField(desc="Full vacancy description")
     processed_description: str = dspy.OutputField(
@@ -26,7 +26,7 @@ class RequirementsExtractor(dspy.Module):
         Extract requirements from the given description.
 
         Uses DSPy prompting to transform the input into a concise
-        technical requirements-only summary.
+        requirements-only summary.
 
         Parameters
         ----------

@@ -11,7 +11,7 @@ Examples
 
 import asyncio
 
-from src.jobs.pipelines.tech_reqs_extractor import extract_technical_requirements
+from src.jobs.pipelines.requirements_extractor import extract_vacancy_requirements
 from src.scrapers.schemas.vacancy import VacancySchema
 from src.db.engine import connect_to_db
 from src.db.repositories.vacancies import VacancyRepository
@@ -49,7 +49,7 @@ def scrape_vacancy_details(
             vacancy_repo = VacancyRepository(session)
             vacancy = await vacancy_repo.get(vacancy_id)
             scraped = await scraper.scrape_vacancy(vacancy.url)
-            processed_description = extract_technical_requirements(scraped.description or "")
+            processed_description = extract_vacancy_requirements(scraped.description or "")
 
             # Update vacancy with the scraped data
             await vacancy_repo.update_details(
