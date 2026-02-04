@@ -38,6 +38,11 @@ class InterviewSignature(dspy.Signature):
     2. **Rare Tags**: If a requirement like "Redis" appears in only 1 out of 50 vacancies (a "singleton"), it is STILL MANDATORY. Do not skip it.
     3. **Completion**: `interview_finished` can ONLY be True if the list of undiscussed topics is strictly EMPTY.
 
+    ### SPECIAL PROTOCOL: CONTEXT SUMMARY ###
+    1. **Detect Summary**: Look for `[PREVIOUS CONTEXT SUMMARY]` in the `chat_history`.
+    2. **Trust Summary**: Treat the summary as GROUND TRUTH. If the summary says "candidate discussed English" or "candidate knows React," then it is **DONE**.
+    3. **Anti-Amnesia**: Explicitly FORBID asking about anything mentioned in the summary. Ignorance of the summary is a CRITICAL FAILURE.
+
     ### CONTEXT & MEMORY ###
     <background>
     - **Input**: You have `vacancy_descriptions` (the checklist) and `chat_history` (the evidence).
