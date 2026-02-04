@@ -7,12 +7,12 @@ from typing import AsyncGenerator
 import dspy
 from fastapi.responses import StreamingResponse
 
-from src.agents.implementations.technical_interview import (
+from src.agents.implementations.interview import (
     InterviewTurnRequestSchema,
-    TechnicalInterviewAgent,
-    TechnicalInterviewResponseSchema,
+    InterviewAgent,
+    InterviewResponseSchema,
 )
-from src.api.schemas import TechnicalInterviewChatRequestSchema
+from src.api.schemas import InterviewChatRequestSchema
 from src.config.app import app_config
 from src.config.openai import openai_config
 from src.conversation_history.manager import ConversationHistoryManager
@@ -51,13 +51,13 @@ async def ensure_interview_not_finished(session_id: str) -> None:
             raise InterviewAlreadyFinishedError("Interview already finished for this session.")
 
 
-def _resolve_llm_config(payload: TechnicalInterviewChatRequestSchema) -> tuple[str, float, dict]:
+def _resolve_llm_config(payload: InterviewChatRequestSchema) -> tuple[str, float, dict]:
     """
     Resolve LLM configuration overrides from the payload.
 
     Parameters
     ----------
-    payload : TechnicalInterviewChatRequestSchema
+    payload : InterviewChatRequestSchema
         Request payload containing optional LLM overrides.
 
     Returns
@@ -106,7 +106,7 @@ async def _load_vacancy_descriptions(search_query_id: int) -> list[str]:
 
 async def _build_request_payload(
     session_id: str,
-    payload: TechnicalInterviewChatRequestSchema,
+    payload: InterviewChatRequestSchema,
 ) -> InterviewTurnRequestSchema:
     """
     Build the interview request with auto-populated chat history.
@@ -115,7 +115,7 @@ async def _build_request_payload(
     ----------
     session_id : str
         Chat session identifier.
-    payload : TechnicalInterviewChatRequestSchema
+    payload : InterviewChatRequestSchema
         Interview turn input (search_query_id and query).
 
     Returns
@@ -136,10 +136,10 @@ async def _build_request_payload(
     )
 
 
-async def run_technical_interview(
+async def run_interview(
     session_id: str,
-    payload: TechnicalInterviewChatRequestSchema,
-) -> TechnicalInterviewResponseSchema:
+    payload: InterviewChatRequestSchema,
+) -> InterviewResponseSchema:
     """
     Run a technical interview turn and persist chat history.
 
@@ -147,18 +147,18 @@ async def run_technical_interview(
     ----------
     session_id : str
         Chat session identifier.
-    payload : TechnicalInterviewChatRequestSchema
+    payload : InterviewChatRequestSchema
         Interview turn input (search_query_id and query).
 
     Returns
     -------
-    TechnicalInterviewResponseSchema
+    InterviewResponseSchema
         Agent response with completion flag.
     """
     start_time = time.time()
     llm_model, llm_temperature, additional_llm_kwargs = _resolve_llm_config(payload)
     vacancy_descriptions = await _load_vacancy_descriptions(payload.search_query_id)
-    agent = TechnicalInterviewAgent()
+    agent = InterviewAgent()
 
     lm = dspy.LM(
         model=llm_model,
@@ -179,7 +179,7 @@ async def run_technical_interview(
     total_time = time.time() - start_time
     logger.debug(f"Technical interview response time: {total_time:.4f}s")
 
-    response = TechnicalInterviewResponseSchema(
+    response = InterviewResponseSchema(
         interview_finished=getattr(prediction, "interview_finished", False),
         response=getattr(prediction, "response", ""),
     )
@@ -196,9 +196,9 @@ async def run_technical_interview(
     return response
 
 
-def stream_technical_interview(
+def stream_interview(
     session_id: str,
-    payload: TechnicalInterviewChatRequestSchema,
+    payload: InterviewChatRequestSchema,
 ) -> StreamingResponse:
     """
     Run a technical interview turn and stream the response.
@@ -207,13 +207,13 @@ def stream_technical_interview(
     ----------
     session_id : str
         Chat session identifier.
-    payload : TechnicalInterviewChatRequestSchema
+    payload : InterviewChatRequestSchema
         Interview turn input (search_query_id and query).
 
     Returns
     -------
     StreamingResponse
-        SSE stream with token events and final TechnicalInterviewResponseSchema payload.
+        SSE stream with token events and final InterviewResponseSchema payload.
     """
 
     async def event_stream() -> AsyncGenerator[str, None]:
@@ -234,7 +234,7 @@ def stream_technical_interview(
 
 async def iter_technical_interview_events(
     session_id: str,
-    payload: TechnicalInterviewChatRequestSchema,
+    payload: InterviewChatRequestSchema,
 ) -> AsyncGenerator[dict, None]:
     """
     Stream technical interview events as structured dictionaries.
@@ -243,7 +243,7 @@ async def iter_technical_interview_events(
     ----------
     session_id : str
         Chat session identifier.
-    payload : TechnicalInterviewChatRequestSchema
+    payload : InterviewChatRequestSchema
         Interview turn input (search_query_id and query).
 
     Yields
@@ -256,7 +256,7 @@ async def iter_technical_interview_events(
         first_token_received = False
         llm_model, llm_temperature, additional_llm_kwargs = _resolve_llm_config(payload)
         vacancy_descriptions = await _load_vacancy_descriptions(payload.search_query_id)
-        agent = TechnicalInterviewAgent()
+        agent = InterviewAgent()
 
         lm = dspy.LM(
             model=llm_model,
@@ -297,7 +297,7 @@ async def iter_technical_interview_events(
                         event["type"] = "answer"
                     yield event
                 elif isinstance(chunk, dspy.Prediction):
-                    response_schema = TechnicalInterviewResponseSchema(
+                    response_schema = InterviewResponseSchema(
                         interview_finished=getattr(chunk, "interview_finished", False),
                         response=getattr(chunk, "response", ""),
                     )

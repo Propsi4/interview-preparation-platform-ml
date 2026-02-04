@@ -39,8 +39,8 @@ class ConfigableLLMRequestSchema(BaseModel):
     )
 
 
-class TechnicalInterviewChatRequestSchema(BaseModel):
-    """Request body for running a technical interview turn."""
+class InterviewChatRequestSchema(BaseModel):
+    """Request body for running an interview turn."""
 
     search_query_id: int = Field(..., description="Search query identifier")
     query: str = Field(..., description="Latest user input")

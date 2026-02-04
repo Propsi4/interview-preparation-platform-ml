@@ -19,7 +19,7 @@ from src.api.schemas import (
     SpeechStartFrameSchema,
     SpeechStreamEventSchema,
     SpeechTranscriptionResponseSchema,
-    TechnicalInterviewChatRequestSchema,
+    InterviewChatRequestSchema,
 )
 from src.config.openai import openai_config
 from src.core.logging import logger
@@ -239,7 +239,7 @@ async def speech_stream(websocket: WebSocket) -> None:
                 )
                 await _emit_event(websocket, "transcript", {"text": transcript})
 
-                payload = TechnicalInterviewChatRequestSchema(
+                payload = InterviewChatRequestSchema(
                     search_query_id=start_frame.search_query_id,
                     query=transcript,
                 )

@@ -1,12 +1,12 @@
-"""Schemas for technical interview agent."""
+"""Schemas for interview agent."""
 
 from pydantic import BaseModel, Field
 from langchain_core.messages import BaseMessage
 from typing import List
 
 
-class TechnicalInterviewResponseSchema(BaseModel):
-    """Response schema for technical interview agent."""
+class InterviewResponseSchema(BaseModel):
+    """Response schema for interview agent."""
 
     interview_finished: bool = Field(False, description="Whether the interview is complete")
     response: str = Field(..., description="Next question or final summary if interview is complete")
