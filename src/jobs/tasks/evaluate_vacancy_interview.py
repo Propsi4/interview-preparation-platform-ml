@@ -76,7 +76,8 @@ def evaluate_vacancy_interview(
     chat_history: List[Dict[str, str]],
     search_query_id: int,
     chat_session_id: str,
-) -> VacancyInterviewAssessmentSchema:
+    vacancy_id: int,
+) -> VacancyInterviewAssessmentSchema | None:
     """
     Evaluate interview performance against a vacancy description.
 
@@ -90,18 +91,19 @@ def evaluate_vacancy_interview(
         Search query identifier.
     chat_session_id : str
         Chat session identifier.
+    vacancy_id : int
+        Vacancy identifier.
 
     Returns
     -------
-    None
-        This task persists the evaluation result.
+    VacancyInterviewAssessmentSchema | None
+        Assessment result or None if skipped.
     """
     if not vacancy_description:
-        logger.warning("Skipping assessment: empty vacancy description")
-        return
+        logger.warning(f"Skipping assessment: vacancy {vacancy_id} not found or empty description")
+        return None
 
     agent = VacancyInterviewAssessmentAgent()
-
     lm_kwargs: dict = {}
     if openai_config.LLM_MAX_TOKENS is not None:
         lm_kwargs["max_tokens"] = openai_config.LLM_MAX_TOKENS
@@ -131,6 +133,7 @@ def evaluate_vacancy_interview(
                 score=assessment.score,
                 strong_sides=assessment.strong_sides,
                 weak_sides=assessment.weak_sides,
+                vacancy_id=vacancy_id,
             )
             await score_repo.add(score_model)
             await score_repo.commit()

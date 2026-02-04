@@ -82,6 +82,11 @@ async def list_evaluation_results_for_session(session_id: str) -> List[VacancyIn
             score=score.score,
             strong_sides=score.strong_sides,
             weak_sides=score.weak_sides,
+            vacancy_id=score.vacancy.id,
+            vacancy_title=score.vacancy.title,
+            vacancy_company=score.vacancy.company,
+            vacancy_url=score.vacancy.url,
+            vacancy_location=score.vacancy.location,
             created_at=score.created_at,
             updated_at=score.updated_at,
         )

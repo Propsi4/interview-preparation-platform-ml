@@ -189,6 +189,11 @@ class VacancyInterviewScoreResponseSchema(BaseModel):
     score: float = Field(..., ge=0.0, le=1.0, description="Normalized assessment score")
     strong_sides: Optional[str] = Field(default=None, description="Highlighted strong sides of the interview")
     weak_sides: Optional[str] = Field(default=None, description="Highlighted weak sides of the interview")
+    vacancy_id: int = Field(..., description="Vacancy identifier")
+    vacancy_title: Optional[str] = Field(default=None, description="Vacancy title")
+    vacancy_company: Optional[str] = Field(default=None, description="Vacancy company")
+    vacancy_url: Optional[str] = Field(default=None, description="Vacancy URL")
+    vacancy_location: Optional[str] = Field(default=None, description="Vacancy location")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -202,6 +207,11 @@ class VacancyInterviewScoreResponseSchema(BaseModel):
                 "score": 0.7,
                 "strong_sides": "Clear communication and relevant examples.",
                 "weak_sides": "Needs deeper system design explanations.",
+                "vacancy_id": 101,
+                "vacancy_title": "Software Engineer",
+                "vacancy_company": "Tech Corp",
+                "vacancy_url": "https://example.com/job/101",
+                "vacancy_location": "Remote",
                 "created_at": "2025-01-01T10:00:00Z",
                 "updated_at": "2025-01-01T10:00:00Z",
             }

@@ -43,6 +43,7 @@ async def dispatch_vacancy_assessments(chat_session_id: str, search_query_id: in
         celery_app.send_task(
             name="assessment.evaluate_vacancy_interview",
             kwargs={
+                "vacancy_id": vacancy.id,
                 "vacancy_description": vacancy.description,
                 "chat_history": langchain_messages_to_dicts(chat_history),
                 "search_query_id": search_query_id,

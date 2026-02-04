@@ -13,6 +13,7 @@ from src.db.models.base import TimestampedBase
 if TYPE_CHECKING:
     from src.db.models.search_query import SearchQueryModel
     from src.db.models.chat_session import ChatSessionModel
+    from src.db.models.vacancies import VacancyModel
 
 
 class VacancyInterviewScoreModel(TimestampedBase):
@@ -26,9 +27,13 @@ class VacancyInterviewScoreModel(TimestampedBase):
         ForeignKey("chat_sessions.session_id", ondelete="CASCADE"),
         nullable=False,
     )
+    vacancy_id: Mapped[int] = mapped_column(
+        ForeignKey("vacancies.id", ondelete="CASCADE"), nullable=False
+    )
     score: Mapped[float] = mapped_column(Float, nullable=False)
     strong_sides: Mapped[str | None] = mapped_column(Text, nullable=True)
     weak_sides: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     search_query: Mapped["SearchQueryModel"] = relationship("SearchQueryModel")
     chat_session: Mapped["ChatSessionModel"] = relationship("ChatSessionModel")
+    vacancy: Mapped["VacancyModel"] = relationship("VacancyModel")
