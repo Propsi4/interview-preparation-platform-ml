@@ -6,6 +6,7 @@ from .vacancies import VacancyModel
 from .chat_session import ChatSessionModel
 from .chat_message import ChatMessageModel
 from .vacancy_interview_score import VacancyInterviewScoreModel
+from .unified_requirements import UnifiedRequirementsModel
 
 metadata = Base.metadata
 
@@ -14,6 +15,7 @@ __all__ = [
     "TimestampedBase",
     "metadata",
     "SearchQueryModel",
+    "UnifiedRequirementsModel",
     "VacancyModel",
     "ChatSessionModel",
     "ChatMessageModel",

@@ -15,6 +15,7 @@ from src.jobs.pipelines.requirements_extractor import extract_vacancy_requiremen
 from src.scrapers.schemas.vacancy import VacancySchema
 from src.db.engine import connect_to_db
 from src.db.repositories.vacancies import VacancyRepository
+from src.db.repositories.search_queries import SearchQueryRepository
 from src.core.logging import logger
 from src.jobs.celery_app import celery_app
 from src.scrapers.implementations.dou import DouScraper
@@ -65,6 +66,21 @@ def scrape_vacancy_details(
                 },
             )
             await vacancy_repo.commit()
+
+            # Check if all vacancies are processed
+            query_repo = SearchQueryRepository(session)
+            search_query = await query_repo.get(vacancy.search_query_id)
+            if search_query and search_query.total_results:
+                processed_count = await vacancy_repo.count_by_search_query_id(
+                    vacancy.search_query_id, scrapped=True
+                )
+                if processed_count >= search_query.total_results:
+                    celery_app.send_task(
+                        name="agggregation.unify_requirements",
+                        kwargs={"search_query_id": vacancy.search_query_id},
+                    )
+                    logger.info(f"Triggered unification for search query {vacancy.search_query_id}")
+
             logger.info(f"Vacancy {vacancy_id} updated with scraped details")
             return vacancy
 

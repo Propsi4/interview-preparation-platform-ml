@@ -17,13 +17,13 @@ class InterviewSignature(dspy.Signature):
 
     ### CONTEXT ###
     <background>
-    - **Input**: You have a list of `vacancy_descriptions` (requirements) and a `[PREVIOUS CONTEXT SUMMARY]` (what has already been discussed).
+    - **Input**: You have `unified_requirements` (a consolidated list of requirements) and a `[PREVIOUS CONTEXT SUMMARY]` (what has already been discussed).
     - **Goal**: Assess the candidate against the requirements WITHOUT repeating questions or ignoring previous answers.
     - **Context Awareness**: The `[PREVIOUS CONTEXT SUMMARY]` is the GROUND TRUTH. If the summary says a topic is covered (PASS/FAIL/PARTIAL), it is **DONE**.
     </background>
 
     ### TASK ###
-    Conduct the interview by selecting the **next most relevant topic** from the `vacancy_descriptions` that has NOT yet been discussed, while strictly adhering to the Semantic Deduplication Logic.
+    Conduct the interview by selecting the **next most relevant topic** from the `unified_requirements` that has NOT yet been discussed, while strictly adhering to the Semantic Deduplication Logic.
 
     ### SEMANTIC DEDUPLICATION LOGIC (CRITICAL) ###
     *You must interpret requirements as **Concepts**, not just Keywords.*
@@ -44,10 +44,10 @@ class InterviewSignature(dspy.Signature):
     <steps>
     1. **Memory Audit**:
     - Read the `[PREVIOUS CONTEXT SUMMARY]`. Identify all topics marked as [PASS], [FAIL], or [PARTIAL].
-    - Mentally "cross out" every requirement in the `vacancy_descriptions` that falls under these covered topics.
+    - Mentally "cross out" every requirement in the `unified_requirements` that falls under these covered topics.
 
     2. **Finish Check**:
-    - **IF** all major concepts in the `vacancy_descriptions` are covered (either discussed directly or skipped via the "Umbrella Rule"):
+    - **IF** all major concepts in the `unified_requirements` are covered (either discussed directly or skipped via the "Umbrella Rule"):
         - **THEN** set `interview_finished = True` and generate a polite closing message.
         - **ELSE**: Proceed to Step 3.
 
@@ -68,8 +68,8 @@ class InterviewSignature(dspy.Signature):
     ```
     Before generating a response:
     1. Look at the `[PREVIOUS CONTEXT SUMMARY]` system message in the chat history (if present). What is the status of the last discussed topic?
-    2. Look at the `vacancy_descriptions`. What items are left?
-    3. **Filter**: specific_tool_X is in vacancy_list, but general_category_X is FAIL in summary. -> REMOVE specific_tool_X from valid options.
+    2. Look at the `unified_requirements`. What items are left?
+    3. **Filter**: specific_tool_X is in unified_requirements, but general_category_X is FAIL in summary. -> REMOVE specific_tool_X from valid options.
     4. Select the next valid topic.
     5. Check Tone: Am I sounding repetitive? If so, change phrasing.
     ```
@@ -83,7 +83,7 @@ class InterviewSignature(dspy.Signature):
     }
     """  # noqa: D205, D400
 
-    vacancy_descriptions: List[str] = dspy.InputField(desc="Vacancy descriptions")
+    unified_requirements: str = dspy.InputField(desc="Unified requirements")
     chat_history: List[BaseMessage] = dspy.InputField(desc="Conversation history between interviewer and candidate")
     query: str = dspy.InputField(desc="Latest user input")
 
@@ -100,13 +100,13 @@ class InterviewAgent(dspy.Module):
 
     def forward(
         self,
-        vacancy_descriptions: List[str],
+        unified_requirements: str,
         chat_history: List[BaseMessage],
         query: str,
     ) -> dspy.Prediction:
         """Run the DSPy predictor."""
         return self.generator(
-            vacancy_descriptions=vacancy_descriptions,
+            unified_requirements=unified_requirements,
             chat_history=chat_history,
             query=query,
         )
