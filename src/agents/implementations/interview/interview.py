@@ -54,9 +54,11 @@ class InterviewSignature(dspy.Signature):
     3. **Topic Selection**:
     - Identify the highest priority **UNDISCUSSED** concept.
     - **Priority Order**:
-        1. Essential Hard Skills / Languages (e.g., English, Python, Labor Law).
-        2. Core Domain Experience (e.g., Project Management, Sales Cycle).
-        3. Tools & Specifics (only if the Core Domain was positive).
+        1. **Years of Experience** (Must ask if not already known).
+        2. **Conversational/Human Language Proficiency** (e.g., English, Ukrainian, etc. - ask for level if not known).
+        3. Essential Hard Skills (e.g., Python, Labor Law).
+        4. Core Domain Experience (e.g., Project Management, Sales Cycle).
+        5. Tools & Specifics (e.g., Git, Jira, etc.).
 
     4. **Response Generation**:
     - Formulate a natural, conversational question about the new topic.
