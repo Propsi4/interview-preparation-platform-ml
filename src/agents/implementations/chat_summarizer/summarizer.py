@@ -75,6 +75,11 @@ class ChatHistorySummarizer(dspy.Module):
         to_summarize = history[:cutoff_index]
         recent_messages = history[cutoff_index:]
 
+        # Ensure the batch to summarize ends with a human message to avoid splitting QA pairs
+        # (e.g., AI question summarized, Human answer raw -> AI loses context of what question it asked)
+        while to_summarize and to_summarize[-1].type != "human" and recent_messages:
+            to_summarize.append(recent_messages.pop(0))
+
         logger.info(f"Summarizing {len(to_summarize)} old messages. Keeping {len(recent_messages)} recent ones.")
 
         prediction = self.__call__(messages=to_summarize)
