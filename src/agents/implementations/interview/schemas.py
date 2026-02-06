@@ -18,15 +18,18 @@ class InterviewTurnRequestSchema(BaseModel):
 
     Parameters
     ----------
-    search_query_id : int
-        Search query identifier.
+    unified_requirements : str
+        Unified requirements for the job.
+    job_title : str
+        Job title.
     chat_history : List[BaseMessage]
         Conversation history for the interview.
     query : str
         Latest user input.
     """
 
-    search_query_id: int = Field(..., description="Search query identifier")
+    unified_requirements: str = Field(..., description="Unified requirements for the job")
+    job_title: str = Field(..., description="Job title")
     chat_history: List[BaseMessage] = Field(default_factory=list)
     query: str = Field(..., description="Latest user input")
 
