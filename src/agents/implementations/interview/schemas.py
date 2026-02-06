@@ -56,40 +56,44 @@ class InterviewSignature(dspy.Signature):
     *You must interpret requirements as **Concepts**, not just Keywords.*
 
     1. **The "Umbrella" Rule**:
-    - If the `[PREVIOUS CONTEXT SUMMARY]` indicates a **Broad Category** is discussed (e.g., "Databases", "Recruiting Tools", "Legal Compliance"), you must mark ALL specific sub-items in that category as **DONE**.
-    - *Example (Tech)*: Summary says "Orchestration: FAIL". Vacancy asks for "Dagster". -> **Action**: SKIP "Dagster" (it is a sub-item of Orchestration).
-    - *Example (HR)*: Summary says "Sourcing: PASS". Vacancy asks for "Boolean Search". -> **Action**: SKIP "Boolean Search" (it is implied by Sourcing).
+    - If the `[PREVIOUS CONTEXT SUMMARY]` indicates a **Broad Category** is discussed (e.g., "Databases"), you may mark the *category* as DONE.
+    - **CRITICAL**: Do NOT automatically mark specific sub-items (e.g., "PostgreSQL", "Redis") as DONE unless the user **EXPLICITLY** mentioned them or if the user clearly stated they have NO experience in the broader domain.
+    - *Example*: Summary says "Databases: PASS". Vacancy asks for "Redis". User only mentioned "PostgreSQL". -> **Action**: ASK about "Redis".
 
     2. **The "No-Go" Inference**:
     - If the user explicitly stated they lack experience in a **Core Domain**, do NOT ask about specific tools within that domain.
     - *Logic*: `If domain_status == FAIL OR NO_EXPERIENCE -> skip_all_domain_specific_tools()`
 
     3. **Synonym Matching**:
-    - Treat variations as the same topic (e.g., "Client Communication" = "Stakeholder Management" = "Account Management").
+    - Treat variations as the same topic (e.g., "Client Communication" = "Stakeholder Management").
 
     ### INSTRUCTIONS ###
     <steps>
     1. **Memory Audit**:
     - Read the `[PREVIOUS CONTEXT SUMMARY]`. Identify all topics marked as [PASS], [FAIL], or [PARTIAL].
-    - Mentally "cross out" every requirement in the `unified_requirements` that falls under these covered topics.
+    - Mentally "cross out" every requirement in the `unified_requirements` that falls under these covered topics, **subject to the Umbrella Rule restrictions**.
 
-    2. **Finish Check**:
-    - **IF** all major concepts in the `unified_requirements` are covered (either discussed directly or skipped via the "Umbrella Rule"):
+    2. **Answer Verification (CRITICAL)**:
+    - Check the `query` (latest user message). Did the user answer the *previous* question found in `chat_history`?
+    - **IF NO** (user changed topic, ignored question, or just added extra info to a previous topic):
+        - Acknowledge the new information.
+        - **RE-ASK** the original question politely.
+        - Do NOT move to a new topic yet.
+
+    3. **Finish Check**:
+    - **Verify Coverage**: Have you asked about **EVERY SINGLE** requirement, tool, and library listed in `unified_requirements` (unless excluded by the "No-Go Inference")?
+    - **IF** strict coverage is complete:
         - **THEN** set `interview_finished = True` and generate a polite closing message.
-        - **ELSE**: Proceed to Step 3.
+        - **ELSE**: Proceed to Step 4.
 
-    3. **Topic Selection**:
+    4. **Topic Selection**:
     - Identify the highest priority **UNDISCUSSED** concept.
     - **Priority Order**:
-        1. **Years of Experience** (Must ask if not already known).
-        2. **Past Experience** (Ask the candidate to briefly describe their relevant past experience, domain of experience).
+        1. **Past Experience** (Ask the candidate to briefly describe their relevant past experience, domain of experience).
+        2. **Years of Experience** (Must ask if not already known).
         3. **Conversational/Human Language Proficiency** (e.g., English, Ukrainian, etc. - ask for knowledge level if not known).
-        4. **Essential Hard Skills, Tools & Specifics** (e.g., Python, Git, Jira, etc.).
-
-    4. **Response Generation**:
-    - Formulate a natural, conversational question about the new topic.
-    - **Transition**: Use the previous context to bridge topics (e.g., "Since you mentioned X, how do you handle Y?").
-    - **Acceptance**: If the user says "I don't know," accept it immediately. Do NOT ask follow-up questions to "verify" their lack of knowledge.
+        4. **Essential Hard Skills, Tools & Specifics** (Check EACH specific tool/library listed).
+        5. **Core Domain Experience** (e.g., Project Management, Sales Cycle).
     </steps>
 
     ### REASONING APPROACH ###
