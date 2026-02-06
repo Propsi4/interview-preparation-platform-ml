@@ -20,6 +20,7 @@ from src.agents.implementations.chat_summarizer.summarizer import ChatHistorySum
 from src.core.logging import logger
 from src.db.engine import connect_to_db
 from src.db.repositories.chat_sessions import ChatSessionRepository
+from src.db.repositories.search_queries import SearchQueryRepository
 from src.db.repositories.unified_requirements import UnifiedRequirementsRepository
 from src.utils import extract_request_cost, persist_chat_and_cost
 
@@ -51,7 +52,7 @@ async def ensure_interview_not_finished(session_id: str) -> None:
             raise InterviewAlreadyFinishedError("Interview already finished for this session.")
 
 
-def _resolve_llm_config(payload: InterviewChatRequestSchema) -> tuple[str, float, dict]:
+def resolve_llm_config(payload: InterviewChatRequestSchema) -> tuple[str, float, dict]:
     """
     Resolve LLM configuration overrides from the payload.
 
@@ -83,7 +84,7 @@ def _resolve_llm_config(payload: InterviewChatRequestSchema) -> tuple[str, float
     return llm_model, llm_temperature, additional_llm_kwargs
 
 
-async def _load_unified_requirements(search_query_id: int) -> Optional[str]:
+async def load_unified_requirements(search_query_id: int) -> Optional[str]:
     """
     Load unified requirements for a search query.
 
@@ -104,7 +105,28 @@ async def _load_unified_requirements(search_query_id: int) -> Optional[str]:
             return unified.requirements
 
 
-async def _build_request_payload(
+async def load_job_title(search_query_id: int) -> Optional[str]:
+    """
+    Load job title for a search query.
+
+    Parameters
+    ----------
+    search_query_id : int
+        Search query identifier.
+
+    Returns
+    -------
+    str
+        Job title.
+    """
+    async with connect_to_db() as session:
+        search_query_repo = SearchQueryRepository(session)
+        search_query = await search_query_repo.get_by_id(search_query_id)
+        if search_query:
+            return search_query.job_title
+
+
+async def build_request_payload(
     session_id: str,
     payload: InterviewChatRequestSchema,
 ) -> InterviewTurnRequestSchema:
@@ -125,6 +147,10 @@ async def _build_request_payload(
     """
     chat_history = await history_manager.get_messages_for_session(session_id)
 
+    job_title = await load_job_title(payload.search_query_id)
+    if not job_title:
+        raise ValueError("Job title not found for search query. Try again later.")
+
     # Summarize history if needed
     summarizer = ChatHistorySummarizer(max_history_len=app_config.MAX_CHAT_HISTORY_LEN)
     chat_history = summarizer.summarize(chat_history)
@@ -133,6 +159,7 @@ async def _build_request_payload(
         search_query_id=payload.search_query_id,
         chat_history=chat_history,
         query=payload.query,
+        job_title=job_title,
     )
 
 
@@ -156,8 +183,8 @@ async def run_interview(
         Agent response with completion flag.
     """
     start_time = time.time()
-    llm_model, llm_temperature, additional_llm_kwargs = _resolve_llm_config(payload)
-    unified_requirements = await _load_unified_requirements(payload.search_query_id)
+    llm_model, llm_temperature, additional_llm_kwargs = resolve_llm_config(payload)
+    unified_requirements = await load_unified_requirements(payload.search_query_id)
     if not unified_requirements:
         raise ValueError("Unified requirements not found for search query. Try again later.")
     agent = InterviewAgent()
@@ -169,9 +196,10 @@ async def run_interview(
     )
 
     with dspy.context(lm=lm, track_usage=True):
-        request = await _build_request_payload(session_id, payload)
+        request = await build_request_payload(session_id, payload)
         start_index = len(getattr(lm, "history", []) or [])
         prediction = agent(
+            job_title=request.job_title,
             unified_requirements=unified_requirements,
             chat_history=request.chat_history,
             query=request.query,
@@ -256,8 +284,8 @@ async def iter_interview_events(
     try:
         start_time = time.time()
         first_token_received = False
-        llm_model, llm_temperature, additional_llm_kwargs = _resolve_llm_config(payload)
-        unified_requirements = await _load_unified_requirements(payload.search_query_id)
+        llm_model, llm_temperature, additional_llm_kwargs = resolve_llm_config(payload)
+        unified_requirements = await load_unified_requirements(payload.search_query_id)
         if not unified_requirements:
             raise ValueError("Unified requirements not found for search query. Try again later.")
         agent = InterviewAgent()
@@ -269,7 +297,7 @@ async def iter_interview_events(
         )
 
         with dspy.context(lm=lm, track_usage=True):
-            request = await _build_request_payload(session_id, payload)
+            request = await build_request_payload(session_id, payload)
             start_index = len(getattr(lm, "history", []) or [])
             stream_agent = dspy.streamify(
                 agent,
@@ -281,6 +309,7 @@ async def iter_interview_events(
             )
 
             async for chunk in stream_agent(
+                job_title=request.job_title,
                 unified_requirements=unified_requirements,
                 chat_history=request.chat_history,
                 query=request.query,
