@@ -20,7 +20,8 @@ RUN pip install --no-cache-dir --upgrade pip poetry
 COPY pyproject.toml poetry.lock ./
 
 # Install project dependencies
-RUN poetry install --no-root --only main
+RUN poetry install --no-root --only main \
+    && poetry run playwright install chromium --with-deps
 
 # Copy application source code
 COPY . ./
